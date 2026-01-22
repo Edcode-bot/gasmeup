@@ -1,0 +1,220 @@
+import { Navbar } from '@/components/navbar';
+import Link from 'next/link';
+import { formatAddress, formatAmountWithToken } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
+import { Profile, Support } from '@/lib/supabase';
+import { getTokenSymbol, type SupportedChainId } from '@/lib/blockchain';
+import { SocialLinks } from '@/components/social-links';
+import { CopyLinkButton } from '@/components/copy-link-button';
+import { VerifiedBadge } from '@/components/verified-badge';
+
+interface BuilderPageProps {
+  params: Promise<{ address: string }>;
+}
+
+export default async function BuilderPage({ params }: BuilderPageProps) {
+  const { address } = await params;
+  const formattedAddress = formatAddress(address);
+
+  // Fetch builder profile
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('wallet_address', address.toLowerCase())
+    .single();
+
+  // Fetch all supports for this builder (for accurate stats)
+  const { data: allSupports } = await supabase
+    .from('supports')
+    .select('*')
+    .eq('to_address', address.toLowerCase())
+    .order('created_at', { ascending: false });
+
+  // Fetch posts count for updates tab badge
+  const { count: postsCount } = await supabase
+    .from('posts')
+    .select('*', { count: 'exact', head: true })
+    .eq('builder_address', address.toLowerCase());
+
+  // Fetch projects count for projects tab badge
+  const { count: projectsCount } = await supabase
+    .from('projects')
+    .select('*', { count: 'exact', head: true })
+    .eq('builder_address', address.toLowerCase());
+
+  // Fetch recent supports for display (last 10)
+  const supports = allSupports?.slice(0, 10) || [];
+
+  // Calculate stats
+  const totalRaised = allSupports?.reduce((sum, support) => sum + Number(support.amount), 0) || 0;
+  const uniqueSupporters = new Set(allSupports?.map(s => s.from_address) || []).size;
+  const totalContributions = allSupports?.length || 0;
+  const averageContribution = totalContributions > 0 ? totalRaised / totalContributions : 0;
+  
+  // Calculate contributions this month
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const thisMonthContributions = allSupports?.filter(
+    (s) => new Date(s.created_at) >= startOfMonth
+  ).length || 0;
+  
+  const profileUrl = `https://gasmeup-sable.vercel.app/builder/${address}`;
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-12">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
+                    {profile?.username || 'Builder Profile'}
+                  </h1>
+                  {profile?.verified && <VerifiedBadge size="lg" />}
+                </div>
+                <p className="text-base text-zinc-600 dark:text-zinc-400 sm:text-lg">
+                  {formattedAddress}
+                </p>
+              </div>
+              <CopyLinkButton url={profileUrl} />
+            </div>
+          </div>
+          
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
+            <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
+              <h2 className="mb-4 text-xl font-semibold text-foreground sm:text-2xl">About</h2>
+              {profile?.bio ? (
+                <p className="text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap mb-4">
+                  {profile.bio}
+                </p>
+              ) : (
+                <p className="text-zinc-500 dark:text-zinc-500 italic mb-4">
+                  No bio available yet.
+                </p>
+              )}
+              <SocialLinks
+                twitterUrl={profile?.twitter_url}
+                githubUrl={profile?.github_url}
+                linkedinUrl={profile?.linkedin_url}
+                size="lg"
+              />
+            </div>
+            
+            <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
+              <h2 className="mb-4 text-xl font-semibold text-foreground sm:text-2xl">Funding Stats</h2>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-600 dark:text-zinc-400">Total Raised</span>
+                  <span className="font-semibold text-foreground">
+                    {totalRaised.toFixed(4)} (multi-chain)
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-600 dark:text-zinc-400">Total Supporters</span>
+                  <span className="font-semibold text-foreground">{uniqueSupporters}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-600 dark:text-zinc-400">Average Contribution</span>
+                  <span className="font-semibold text-foreground">
+                    {averageContribution.toFixed(4)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-zinc-600 dark:text-zinc-400">Contributions This Month</span>
+                  <span className="font-semibold text-foreground">{thisMonthContributions}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                  <span className="text-zinc-600 dark:text-zinc-400">Total Contributions</span>
+                  <span className="font-semibold text-foreground">{totalContributions}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="mt-6 border-b border-zinc-200 dark:border-zinc-800 sm:mt-8">
+            <div className="flex gap-4">
+              <Link
+                href={`/builder/${address}`}
+                className="border-b-2 border-[#FFBF00] px-1 pb-3 text-sm font-medium text-foreground"
+              >
+                Contributions
+              </Link>
+              <Link
+                href={`/builder/${address}/updates`}
+                className="flex items-center gap-2 border-b-2 border-transparent px-1 pb-3 text-sm font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-foreground dark:text-zinc-400 dark:hover:border-zinc-700"
+              >
+                Updates
+                {postsCount && postsCount > 0 && (
+                  <span className="rounded-full bg-[#FFBF00] px-2 py-0.5 text-xs font-medium text-black">
+                    {postsCount}
+                  </span>
+                )}
+              </Link>
+              <Link
+                href={`/builder/${address}/projects`}
+                className="flex items-center gap-2 border-b-2 border-transparent px-1 pb-3 text-sm font-medium text-zinc-600 transition-colors hover:border-zinc-300 hover:text-foreground dark:text-zinc-400 dark:hover:border-zinc-700"
+              >
+                Projects
+                {projectsCount && projectsCount > 0 && (
+                  <span className="rounded-full bg-[#FFBF00] px-2 py-0.5 text-xs font-medium text-black">
+                    {projectsCount}
+                  </span>
+                )}
+              </Link>
+            </div>
+          </div>
+
+          {supports && supports.length > 0 && (
+            <div className="mt-4 overflow-x-auto sm:mt-6">
+              <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
+                <h2 className="mb-4 text-xl font-semibold text-foreground sm:text-2xl">Recent Contributions</h2>
+                <div className="space-y-3">
+                  {supports.map((support) => (
+                    <div
+                      key={support.id}
+                      className="flex flex-col gap-2 border-b border-zinc-100 pb-3 last:border-0 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground break-words">
+                          {formatAddress(support.from_address)}
+                        </p>
+                        {support.message && (
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 break-words">
+                            {support.message}
+                          </p>
+                        )}
+                        <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                          {new Date(support.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="font-semibold text-[#FFBF00]">
+                          {formatAmountWithToken(Number(support.amount), support.chain_id)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="mt-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:mt-6 sm:p-6">
+            <h2 className="mb-4 text-xl font-semibold text-foreground sm:text-2xl">Fund This Builder</h2>
+            <Link
+              href={`/builder/${address}/support`}
+              className="inline-block min-h-[44px] rounded-full bg-[#FFBF00] px-8 py-3 text-base font-medium text-black transition-opacity hover:opacity-90"
+            >
+              Contribute
+            </Link>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+

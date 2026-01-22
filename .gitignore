@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Smart contracts dependencies
+contracts/node_modules/
+GasMeUp/
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# Git backup
+.git_backup/

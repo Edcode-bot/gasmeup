@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     ],
   },
   other: {
+    'base:app_id': '695bacf04d3a403912ed8e21',
     'fc:miniapp': JSON.stringify({
       version: "next",
       imageUrl: `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/og-image.png`,

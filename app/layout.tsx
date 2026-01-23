@@ -26,6 +26,20 @@ export const metadata: Metadata = {
       { url: '/icon.png', sizes: '512x512', type: 'image/png' },
     ],
   },
+  other: {
+    'fc:miniapp': JSON.stringify({
+      version: "next",
+      imageUrl: `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/og-image.png`,
+      button: {
+        title: "Fund Builders",
+        action: {
+          type: "launch_miniapp",
+          name: "GasMeUp",
+          url: process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'
+        }
+      }
+    })
+  }
 };
 
 export default function RootLayout({

@@ -156,69 +156,87 @@ export default function SupportPage({ params }: SupportPageProps) {
   };
 
   const handleSendSupport = async () => {
-    if (!authenticated || !user?.wallet?.address) {
-      setError('Please connect your wallet first');
-      return;
-    }
-
-    if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
-      return;
-    }
-
-    if (!builderAddress) {
-      setError('Invalid builder address');
-      return;
-    }
-
-    setTxState('loading');
-    setError('');
-
     try {
+      setTxState('loading');
+      setError('');
+      
+      if (!authenticated || !user?.wallet?.address) {
+        throw new Error('Please connect your wallet');
+      }
+      
+      if (!amount || parseFloat(amount) <= 0) {
+        throw new Error('Please enter a valid amount');
+      }
+      
+      if (!builderAddress) {
+        throw new Error('Invalid builder address');
+      }
+
       const wallet = wallets.find((w) => w.address.toLowerCase() === user.wallet?.address?.toLowerCase());
       if (!wallet) {
         throw new Error('Wallet not found. Please ensure your wallet is connected.');
       }
 
-      // Get chain configuration
-      const chainConfig = getChainConfig(selectedChainId);
-      const chain = getChainById(selectedChainId);
+      const selectedChain = SUPPORTED_CHAINS.find(c => c.id === selectedChainId);
+      if (!selectedChain) {
+        throw new Error('Please select a network');
+      }
 
-      // Get Ethereum provider from Privy wallet
+      // Check if user is on correct chain
       const ethereumProvider = await wallet.getEthereumProvider();
       if (!ethereumProvider) {
         throw new Error('Failed to get wallet provider');
       }
 
-      // Switch to the selected chain if needed
+      let currentChainId: number;
       try {
-        await ethereumProvider.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: `0x${selectedChainId.toString(16)}` }],
-        });
-      } catch (switchError: any) {
-        // If chain doesn't exist, try to add it
-        if (switchError.code === 4902) {
+        const chainIdHex = await ethereumProvider.request({ method: 'eth_chainId' });
+        currentChainId = parseInt(chainIdHex, 16);
+      } catch (chainError) {
+        throw new Error('Failed to get current chain information');
+      }
+
+      if (currentChainId !== selectedChainId) {
+        setError(`Please switch to ${selectedChain.name} network in your wallet`);
+        
+        // Try to switch chain
+        try {
           await ethereumProvider.request({
-            method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId: `0x${selectedChainId.toString(16)}`,
-                chainName: chainConfig.name,
-                nativeCurrency: {
-                  name: chainConfig.currency,
-                  symbol: chainConfig.currency,
-                  decimals: 18,
-                },
-                rpcUrls: [chain.rpcUrls.default.http[0]],
-                blockExplorerUrls: [chainConfig.explorer],
-              },
-            ],
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: `0x${selectedChainId.toString(16)}` }],
           });
-        } else {
-          throw switchError;
+        } catch (switchError: any) {
+          // If chain doesn't exist, try to add it
+          if (switchError.code === 4902) {
+            try {
+              await ethereumProvider.request({
+                method: 'wallet_addEthereumChain',
+                params: [
+                  {
+                    chainId: `0x${selectedChainId.toString(16)}`,
+                    chainName: selectedChain.name,
+                    nativeCurrency: {
+                      name: selectedChain.token,
+                      symbol: selectedChain.token,
+                      decimals: 18,
+                    },
+                    rpcUrls: [selectedChain.rpc],
+                    blockExplorerUrls: [`https://${selectedChain.explorer}`],
+                  },
+                ],
+              });
+            } catch (addError) {
+              throw new Error(`Please manually switch to ${selectedChain.name} in your wallet`);
+            }
+          } else {
+            throw new Error(`Please manually switch to ${selectedChain.name} in your wallet`);
+          }
         }
       }
+
+      // Get chain configuration and create wallet client
+      const chainConfig = getChainConfig(selectedChainId);
+      const chain = getChainById(selectedChainId);
 
       // Create wallet client using Privy's EIP1193 provider
       const walletClient = createWalletClient({
@@ -277,9 +295,9 @@ export default function SupportPage({ params }: SupportPageProps) {
       setTimeout(() => {
         router.push(`/builder/${builderAddress}`);
       }, 3000);
-    } catch (err: any) {
-      console.error('Transaction failed:', err);
-      setError(err?.message || 'Transaction failed. Please try again.');
+    } catch (error: any) {
+      console.error('Support failed:', error);
+      setError(error.message || 'Transaction failed');
       setTxState('error');
     }
   };

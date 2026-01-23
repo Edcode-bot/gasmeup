@@ -1,0 +1,16 @@
+{
+  "celo": {
+    "address": "0xf5531A919c58740D5724CD70EdE107eda40045C3",
+    "chainId": 42220,
+    "deployed": true,
+    "deployedAt": "2026-01-22T12:37:00+03:00",
+    "verified": true
+  },
+  "base": {
+    "address": "0x2853ADf51506B36a2a1810FaC1F272F4a138eC4b",
+    "chainId": 8453,
+    "deployed": true,
+    "deployedAt": "2026-01-22T19:17:00+03:00",
+    "verified": true
+  }
+}

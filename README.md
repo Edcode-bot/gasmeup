@@ -4,10 +4,10 @@ A Web3 platform where supporters fund builders. Help creators build the future, 
 
 ## Features
 
-- 🔐 **Privy Authentication** - Connect wallets, email, or SMS
-- 💰 **Builder Profiles** - View and fund builders by their wallet address
+- 🔐 **Privy Authentication** - Connect wallets, email, or SMS 
+- 💰 **Builder Profiles** - View and fund builders by their wallet address 
 - 📊 **Dashboard** - Track contributions and discover active builders
-- ⚡ **Electric Amber Branding** - Distinctive #FFBF00 color scheme
+
 
 ## Getting Started
 

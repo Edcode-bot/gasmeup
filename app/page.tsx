@@ -179,7 +179,7 @@ export default async function Home() {
                   Future
                 </span>
                 .
-              </h1>
+          </h1>
               <p className="mx-auto mb-8 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-400 sm:text-xl">
                 Direct, transparent, gasless support for creators on Web3. Join{' '}
                 <AnimatedCounter value={totalBuilders || 0} /> builders already funded.
@@ -312,8 +312,8 @@ export default async function Home() {
                 </p>
                 <p className="text-lg font-medium text-zinc-600 dark:text-zinc-400">
                   Total Raised (USD)
-                </p>
-              </div>
+          </p>
+        </div>
               <div className="text-center">
                 <p className="mb-2 text-5xl font-bold text-[#FFBF00] sm:text-6xl">
                   <AnimatedCounter value={activeProjects || 0} />
@@ -357,7 +357,7 @@ export default async function Home() {
               <h2 className="text-3xl font-bold text-foreground sm:text-4xl">Frequently Asked Questions</h2>
             </div>
             <FAQAccordion items={faqItems} />
-          </div>
+        </div>
         </section>
       </main>
 

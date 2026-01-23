@@ -21,10 +21,36 @@ export function PrivyProviderWrapper({ children }: { children: React.ReactNode }
           logo: '/logo.png',
         },
         embeddedWallets: {
-          ethereum: {
-            createOnLogin: 'users-without-wallets',
-          },
+          createOnLogin: 'users-without-wallets',
         },
+        supportedChains: [
+          {
+            id: 42220,
+            name: 'Celo',
+            network: 'celo',
+            nativeCurrency: { name: 'CELO', symbol: 'CELO', decimals: 18 },
+            rpcUrls: {
+              default: { http: ['https://forno.celo.org'] },
+              public: { http: ['https://forno.celo.org'] }
+            },
+            blockExplorers: {
+              default: { name: 'Celoscan', url: 'https://celoscan.io' }
+            }
+          },
+          {
+            id: 8453,
+            name: 'Base',
+            network: 'base',
+            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+            rpcUrls: {
+              default: { http: ['https://mainnet.base.org'] },
+              public: { http: ['https://mainnet.base.org'] }
+            },
+            blockExplorers: {
+              default: { name: 'Basescan', url: 'https://basescan.org' }
+            }
+          }
+        ]
       }}
     >
       {children}

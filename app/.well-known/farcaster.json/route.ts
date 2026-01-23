@@ -3,9 +3,9 @@ export async function GET() {
   
   const manifest = {
     accountAssociation: {
-      header: "",
-      payload: "",
-      signature: ""
+      header: "eyJmaWQiOjIwNDc3OTMsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhhYkY4YjgxNzlkRTRBNjJjOEI5RDE2ZDZFMTEzMmY2MDAxRTVBQjFCIn0",
+      payload: "eyJkb21haW4iOiJnYXNtZXVwLXNhYmxlLnZlcmNlbC5hcHAifQ",
+      signature: "Jl6lyiQtbzTlb2kxkQmcKxBdUbnXdYY7LEVzbVOoIC9+xraAj9zxa/iFdR74BB71B3c7TOnTfRt+8D17W7X2qhs="
     },
     miniapp: {
       version: "1",

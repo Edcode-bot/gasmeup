@@ -3,7 +3,7 @@ export async function GET() {
   
   const manifest = {
     accountAssociation: {
-      header: "eyJmaWQiOjIwNDc3OTMsInR5cGUiOiJjdXN0b21lSIsImtleSI6IjB4YWJGOGI4MTc5ZEU0QTYyYzhCOUExNmQ2RTExMzJmNjAwMUU1QUIxQyJ9",
+      header: "eyJmaWQiOjIwNDc3OTMsInR5cGUiOiJjdXN0b20iLCJrZXkiOiIweGFiRjhiODE3OWRFNEE2MmM4QjlBMTZkNkUxMTMyZjYwMDFFNUFCMUMifQ",
       payload: "eyJkb21haW4iOiJnYXNtZXVwLXNhYmxlLnZlcmNlbC5hcHAifQ",
       signature: "Jl6lyiQtbzTlb2kxkQmcKxBdUbnXdYY7LEVzbVOoIC9+xraAj9zxa/iFdR74BB71B3c7TOnTfRt+8D17W7X2qhs="
     },

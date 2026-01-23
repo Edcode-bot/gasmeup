@@ -11,7 +11,7 @@ export async function GET() {
       version: "1",
       name: "GasMeUp",
       homeUrl: URL,
-      iconUrl: `${URL}/icon-192.png`,
+      iconUrl: `${URL}/icon-1024.png`,
       splashImageUrl: `${URL}/splash.png`,
       splashBackgroundColor: "#FFBF00",
       webhookUrl: `${URL}/api/farcaster/webhook`,
@@ -19,7 +19,8 @@ export async function GET() {
       description: "Direct, transparent support for creators on Base and Celo. Send crypto to builders with automatic fee distribution and help build the future of Web3.",
       screenshotUrls: [
         `${URL}/screenshot-1.png`,
-        `${URL}/screenshot-2.png` 
+        `${URL}/screenshot-2.png`,
+        `${URL}/screenshot-3.png`
       ],
       primaryCategory: "finance",
       tags: ["web3", "funding", "builders", "base", "celo", "crypto", "creator", "support"],

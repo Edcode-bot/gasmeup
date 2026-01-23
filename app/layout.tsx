@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { PrivyProviderWrapper } from "@/components/privy-provider";
 import { FarcasterInit } from "@/components/farcaster-init";
+import { OnboardingModalClient } from "@/components/onboarding-modal-client";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <FarcasterInit />
+        <OnboardingModalClient />
         <PrivyProviderWrapper>{children}</PrivyProviderWrapper>
       </body>
     </html>

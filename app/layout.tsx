@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { PrivyProviderWrapper } from "@/components/privy-provider";
+import { FarcasterInit } from "@/components/farcaster-init";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <FarcasterInit />
         <PrivyProviderWrapper>{children}</PrivyProviderWrapper>
       </body>
     </html>

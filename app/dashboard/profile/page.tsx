@@ -316,38 +316,61 @@ export default function ProfilePage() {
     try {
       const walletAddress = user.wallet.address.toLowerCase();
       
-      // Delete all related data
-      await Promise.all([
-        // Delete posts
-        supabaseClient
-          .from('posts')
-          .delete()
-          .eq('builder_address', walletAddress),
-        
-        // Delete projects
-        supabaseClient
-          .from('projects')
-          .delete()
-          .eq('builder_address', walletAddress),
-        
-        // Delete post likes
+      console.log('🗑️ Starting account deletion for:', walletAddress);
+      
+      // Delete in order of dependencies to avoid foreign key constraints
+      const deletionResults = await Promise.allSettled([
+        // Delete post likes first (depends on posts)
         supabaseClient
           .from('post_likes')
           .delete()
           .eq('user_address', walletAddress),
         
-        // Delete comments
+        // Delete post comments (depends on posts)
         supabaseClient
           .from('post_comments')
           .delete()
           .eq('user_address', walletAddress),
         
-        // Finally, delete profile
+        // Delete notifications for this user
+        supabaseClient
+          .from('notifications')
+          .delete()
+          .eq('user_address', walletAddress),
+        
+        // Delete supports where user is either sender or receiver
+        supabaseClient
+          .from('supports')
+          .delete()
+          .or(`from_address.eq.${walletAddress},to_address.eq.${walletAddress}`),
+        
+        // Delete posts (builder_address)
+        supabaseClient
+          .from('posts')
+          .delete()
+          .eq('builder_address', walletAddress),
+        
+        // Delete projects (builder_address)
+        supabaseClient
+          .from('projects')
+          .delete()
+          .eq('builder_address', walletAddress),
+        
+        // Finally, delete the profile
         supabaseClient
           .from('profiles')
           .delete()
           .eq('wallet_address', walletAddress)
       ]);
+      
+      // Check if any deletions failed
+      const failedDeletions = deletionResults.filter(result => result.status === 'rejected');
+      if (failedDeletions.length > 0) {
+        console.error('Some deletions failed:', failedDeletions);
+        throw new Error('Some data could not be deleted. Please try again.');
+      }
+      
+      console.log('✅ Account deletion completed successfully');
       
       // Log out user
       await logout();
@@ -356,7 +379,7 @@ export default function ProfilePage() {
       router.push('/');
       
     } catch (error) {
-      console.error('Delete failed:', error);
+      console.error('❌ Delete failed:', error);
       alert('Failed to delete account. Please try again.');
     } finally {
       setIsDeleting(false);

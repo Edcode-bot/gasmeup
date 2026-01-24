@@ -3,6 +3,7 @@
 import { Share2, Copy, ExternalLink } from 'lucide-react';
 import { CopyButton } from './copy-button';
 import { useToast } from './toast';
+import { getBaseUrl } from '@/lib/utils';
 
 interface ShareButtonProps {
   title: string;
@@ -102,9 +103,10 @@ export function ShareProfile({ username, address, className }: {
   address: string; 
   className?: string;
 }) {
+  const baseUrl = getBaseUrl();
   const profileUrl = username 
-    ? `https://gasmeup-sable.vercel.app/@${username}`
-    : `https://gasmeup-sable.vercel.app/builder/${address}`;
+    ? `${baseUrl}/@${username}`
+    : `${baseUrl}/builder/${address}`;
   const displayName = username || `builder`;
   
   return (

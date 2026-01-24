@@ -110,28 +110,46 @@ export default function AdminUsersPage() {
     if (!client) return;
     
     try {
-      // Delete all related data
-      await Promise.all([
+      const normalizedAddress = walletAddress.toLowerCase();
+      
+      console.log('🗑️ Admin deleting user:', normalizedAddress);
+      
+      // Delete in order of dependencies to avoid foreign key constraints
+      const deletionResults = await Promise.allSettled([
+        // Delete post likes first
+        client.from('post_likes').delete().eq('user_address', normalizedAddress),
+        
+        // Delete post comments
+        client.from('post_comments').delete().eq('user_address', normalizedAddress),
+        
+        // Delete notifications for this user
+        client.from('notifications').delete().eq('user_address', normalizedAddress),
+        
+        // Delete supports where user is either sender or receiver
+        client.from('supports').delete().or(`from_address.eq.${normalizedAddress},to_address.eq.${normalizedAddress}`),
+        
         // Delete posts
-        client.from('posts').delete().eq('builder_address', walletAddress),
+        client.from('posts').delete().eq('builder_address', normalizedAddress),
         
         // Delete projects
-        client.from('projects').delete().eq('builder_address', walletAddress),
-        
-        // Delete post likes
-        client.from('post_likes').delete().eq('user_address', walletAddress),
-        
-        // Delete comments
-        client.from('post_comments').delete().eq('user_address', walletAddress),
+        client.from('projects').delete().eq('builder_address', normalizedAddress),
         
         // Delete profile
-        client.from('profiles').delete().eq('wallet_address', walletAddress)
+        client.from('profiles').delete().eq('wallet_address', normalizedAddress)
       ]);
       
+      // Check if any deletions failed
+      const failedDeletions = deletionResults.filter(result => result.status === 'rejected');
+      if (failedDeletions.length > 0) {
+        console.error('Some deletions failed:', failedDeletions);
+        throw new Error('Some data could not be deleted. Please try again.');
+      }
+      
+      console.log('✅ Admin user deletion completed successfully');
       alert('User deleted successfully');
       fetchUsers(); // Refresh user list
     } catch (error) {
-      console.error('Admin delete failed:', error);
+      console.error('❌ Admin delete failed:', error);
       alert('Failed to delete user');
     }
   };

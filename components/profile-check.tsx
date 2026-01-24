@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabaseClient } from '@/lib/supabase-client';
+import { isAdmin } from '@/lib/admin';
 
 interface ProfileCheckProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface ProfileCheckProps {
 /**
  * Component that checks if authenticated user has a profile
  * and redirects to profile creation if they don't
+ * Also blocks admin wallets from accessing builder features
  */
 export function ProfileCheck({ children, redirectTo = '/dashboard/profile' }: ProfileCheckProps) {
   const router = useRouter();
@@ -21,6 +23,12 @@ export function ProfileCheck({ children, redirectTo = '/dashboard/profile' }: Pr
 
   useEffect(() => {
     if (!ready || !authenticated || !walletAddress || !supabaseClient) {
+      return;
+    }
+
+    // Check if user is admin - if so, redirect to admin panel
+    if (isAdmin(walletAddress)) {
+      router.push('/admin');
       return;
     }
 

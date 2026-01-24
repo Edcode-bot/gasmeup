@@ -20,7 +20,8 @@ export default function ButtonsPage() {
   const [copiedSnippet, setCopiedSnippet] = useState(false);
 
   const walletAddress = user?.wallet?.address?.toLowerCase() || '';
-  const profileUrl = walletAddress ? `${getBaseUrl()}/builder/${walletAddress}` : '';
+  const profileUrl = walletAddress ? 
+    (profile?.username ? `${getBaseUrl()}/@${profile.username}` : `${getBaseUrl()}/builder/${walletAddress}`) : '';
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
   const projectUrl = selectedProject ? `${getBaseUrl()}/projects/${selectedProjectId}` : '';
 

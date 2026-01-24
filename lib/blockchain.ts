@@ -195,25 +195,38 @@ export async function sendSupport(
     
     const amountWei = parseEther(amount);
     
-    console.log('Sending support via contract:', {
+    console.log('🚀 Sending support via contract:', {
       contract: contractAddress,
       to: toAddress,
+      toLower: toAddress.toLowerCase(),
       amount: amount,
-      chain: chainId
+      amountWei: amountWei.toString(),
+      chain: chainId,
+      message: message
     });
+    
+    // Validate address format
+    if (!toAddress || !toAddress.startsWith('0x') || toAddress.length !== 42) {
+      throw new Error(`Invalid builder address format: ${toAddress}`);
+    }
     
     // Call GasMeUp contract's support() function
     const hash = await walletClient.writeContract({
       address: contractAddress as `0x${string}`,
       abi: GASMEUP_ABI,
       functionName: 'support',
-      args: [toAddress, message],
+      args: [toAddress as Address, message],
       value: amountWei
+    });
+    
+    console.log('✅ Transaction sent successfully:', {
+      hash,
+      explorer: `${SUPPORTED_CHAINS[chainId as SupportedChainId].explorer}/tx/${hash}`
     });
     
     return hash;
   } catch (error) {
-    console.error('Contract support failed:', error);
+    console.error('❌ Contract support failed:', error);
     throw error;
   }
 }

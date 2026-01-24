@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { getBaseUrl } from '@/lib/utils';
 
 interface CopyButtonProps {
   text: string;
@@ -86,9 +87,10 @@ export function CopyProfileUrl({ address, username, className }: {
   username?: string;
   className?: string;
 }) {
+  const baseUrl = getBaseUrl();
   const profileUrl = username 
-    ? `https://gasmeup-sable.vercel.app/@${username}`
-    : `https://gasmeup-sable.vercel.app/builder/${address}`;
+    ? `${baseUrl}/@${username}`
+    : `${baseUrl}/builder/${address}`;
   
   return (
     <CopyButton 

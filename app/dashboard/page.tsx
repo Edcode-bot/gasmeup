@@ -6,6 +6,7 @@ import { UserContributions } from '@/components/dashboard/user-contributions';
 import { UserProfileCard } from '@/components/dashboard/user-profile-card';
 import { ProfileCompletionIndicator } from '@/components/profile-completion-indicator';
 import { QuickActions } from '@/components/quick-actions';
+import { getGlobalChainStats } from '@/lib/chain-stats';
 
 export default async function Dashboard() {
   // Fetch active builders (profiles with at least one support)
@@ -40,6 +41,9 @@ export default async function Dashboard() {
   const { count: totalBuilders } = await supabase
     .from('profiles')
     .select('*', { count: 'exact', head: true });
+
+  // Get global chain statistics
+  const chainStats = await getGlobalChainStats();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -119,15 +123,26 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          <div className="mb-6 grid gap-4 sm:mb-8 sm:gap-6 md:grid-cols-3">
+          <div className="mb-6 grid gap-4 sm:mb-8 sm:gap-6 lg:grid-cols-4">
             <div className="rounded-lg border border-zinc-200 p-4 sm:p-6 dark:border-zinc-800">
               <h2 className="mb-2 text-lg font-semibold text-foreground sm:text-xl">Total Builders</h2>
               <p className="text-2xl font-bold text-[#FFBF00] sm:text-3xl">{totalBuilders || 0}</p>
             </div>
             
-            <div className="rounded-lg border border-zinc-200 p-4 sm:p-6 dark:border-zinc-800">
-              <h2 className="mb-2 text-lg font-semibold text-foreground sm:text-xl">Total Contributions</h2>
-              <p className="text-2xl font-bold text-[#FFBF00] sm:text-3xl">{totalContributions || 0}</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6 dark:bg-blue-900/20 dark:border-blue-800">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-blue-600 text-sm font-medium dark:text-blue-400">Base Network</span>
+              </div>
+              <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 sm:text-3xl">{chainStats.base.total.toFixed(2)} ETH</p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">{chainStats.base.count} contributions</p>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 sm:p-6 dark:bg-yellow-900/20 dark:border-yellow-800">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-yellow-600 text-sm font-medium dark:text-yellow-400">Celo Network</span>
+              </div>
+              <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 sm:text-3xl">{chainStats.celo.total.toFixed(2)} CELO</p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">{chainStats.celo.count} contributions</p>
             </div>
             
             <div className="rounded-lg border border-zinc-200 p-4 sm:p-6 dark:border-zinc-800">

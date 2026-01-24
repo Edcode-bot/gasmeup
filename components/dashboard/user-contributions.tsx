@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { supabaseClient } from '@/lib/supabase-client';
-import { formatAddress, formatAmountWithToken } from '@/lib/utils';
+import { formatAmountWithToken } from '@/lib/utils';
 import { getExplorerUrl, type SupportedChainId } from '@/lib/blockchain';
 import { TransactionReceiptModal } from '@/components/transaction-receipt-modal';
+import { UserDisplay } from '@/components/user-display';
 import Link from 'next/link';
 import type { Support } from '@/lib/supabase';
 
@@ -99,9 +100,12 @@ export function UserContributions() {
             >
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground break-words">
-                    {formatAddress(contribution.to_address)}
-                  </p>
+                  <UserDisplay 
+                    address={contribution.to_address}
+                    showAvatar={true}
+                    size="md"
+                    className="mb-1"
+                  />
                   {contribution.message && (
                     <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-1">
                       {contribution.message}

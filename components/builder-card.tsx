@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Avatar } from '@/components/avatar';
 import { SocialLinks } from '@/components/social-links';
 import { VerifiedBadge } from '@/components/verified-badge';
-import { formatAddress } from '@/lib/utils';
+import { formatAddress } from '@/lib/user-utils';
 import type { Profile } from '@/lib/supabase';
 
 interface BuilderCardProps {
@@ -30,13 +30,15 @@ export function BuilderCard({ builder, showStats = false }: BuilderCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <h3 className="text-lg font-semibold text-foreground truncate">
-              {builder.username || formatAddress(builder.wallet_address)}
+              @{builder.username || 'Anonymous'}
             </h3>
             {builder.verified && <VerifiedBadge size="sm" />}
           </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate">
-            {formatAddress(builder.wallet_address)}
-          </p>
+          {!builder.username && (
+            <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate">
+              {formatAddress(builder.wallet_address)}
+            </p>
+          )}
         </div>
       </div>
       {builder.bio && (

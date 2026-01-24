@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { Avatar } from '@/components/avatar';
 import { supabaseClient } from '@/lib/supabase-client';
-import { formatAddress } from '@/lib/utils';
+import { formatAddress } from '@/lib/user-utils';
 import Link from 'next/link';
 import type { Profile } from '@/lib/supabase';
 
@@ -89,7 +89,7 @@ export function UserProfileCard() {
             />
             <div>
               <h3 className="text-lg font-semibold text-foreground">
-                {profile.username || formatAddress(profile.wallet_address)}
+                Welcome @{profile.username || 'Anonymous'}!
               </h3>
               <p className="text-sm text-zinc-500 dark:text-zinc-500">
                 {formatAddress(profile.wallet_address)}

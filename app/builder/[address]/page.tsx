@@ -1,12 +1,14 @@
 import { Navbar } from '@/components/navbar';
 import Link from 'next/link';
-import { formatAddress, formatAmountWithToken } from '@/lib/utils';
+import { formatAmountWithToken } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { Profile, Support } from '@/lib/supabase';
 import { getTokenSymbol, type SupportedChainId } from '@/lib/blockchain';
 import { SocialLinks } from '@/components/social-links';
 import { CopyLinkButton } from '@/components/copy-link-button';
 import { VerifiedBadge } from '@/components/verified-badge';
+import { UserDisplay } from '@/components/user-display';
+import { formatAddress } from '@/lib/user-utils';
 
 interface BuilderPageProps {
   params: Promise<{ address: string }>;
@@ -71,11 +73,11 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
-                    {profile?.username || 'Builder Profile'}
+                    @{profile?.username || 'Anonymous'}
                   </h1>
                   {profile?.verified && <VerifiedBadge size="lg" />}
                 </div>
-                <p className="text-base text-zinc-600 dark:text-zinc-400 sm:text-lg">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
                   {formattedAddress}
                 </p>
               </div>
@@ -179,9 +181,12 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
                       className="flex flex-col gap-2 border-b border-zinc-100 pb-3 last:border-0 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground break-words">
-                          {formatAddress(support.from_address)}
-                        </p>
+                        <UserDisplay 
+                          address={support.from_address}
+                          showAvatar={true}
+                          size="md"
+                          className="mb-1"
+                        />
                         {support.message && (
                           <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 break-words">
                             {support.message}

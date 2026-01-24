@@ -89,6 +89,7 @@ export default function ExplorePage() {
     const query = searchQuery.toLowerCase();
     return (
       builder.username?.toLowerCase().includes(query) ||
+      builder.bio?.toLowerCase().includes(query) ||
       builder.wallet_address.toLowerCase().includes(query)
     );
   });
@@ -116,7 +117,7 @@ export default function ExplorePage() {
           <div className="mb-6 sm:mb-8 space-y-4">
             <input
               type="text"
-              placeholder="Search by username..."
+              placeholder="Search by username or bio..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-foreground placeholder:text-zinc-400 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder:text-zinc-500"

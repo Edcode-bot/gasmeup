@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { getExplorerUrl, getTransactionStatus, getTokenSymbol, type SupportedChainId } from '@/lib/blockchain';
 import { formatEther } from 'viem';
-import { formatAddress } from '@/lib/utils';
+import { formatAddress } from '@/lib/user-utils';
+import { UserDisplay } from '@/components/user-display';
 
 interface TransactionReceiptModalProps {
   isOpen: boolean;
@@ -128,11 +129,23 @@ export function TransactionReceiptModal({
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">From</label>
-                <p className="mt-1 font-mono text-sm text-foreground">{formatAddress(fromAddress)}</p>
+                <div className="mt-1">
+                  <UserDisplay 
+                    address={fromAddress}
+                    showAvatar={false}
+                    size="sm"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">To</label>
-                <p className="mt-1 font-mono text-sm text-foreground">{formatAddress(toAddress)}</p>
+                <div className="mt-1">
+                  <UserDisplay 
+                    address={toAddress}
+                    showAvatar={false}
+                    size="sm"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Amount</label>

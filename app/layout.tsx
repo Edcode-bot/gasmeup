@@ -4,6 +4,7 @@ import "./globals.css";
 import { PrivyProviderWrapper } from "@/components/privy-provider";
 import { FarcasterInit } from "@/components/farcaster-init";
 import { OnboardingModalClient } from "@/components/onboarding-modal-client";
+import { ToastProvider } from "@/components/toast-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,9 +55,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <FarcasterInit />
-        <OnboardingModalClient />
-        <PrivyProviderWrapper>{children}</PrivyProviderWrapper>
+        <ToastProvider>
+          <FarcasterInit />
+          <OnboardingModalClient />
+          <PrivyProviderWrapper>{children}</PrivyProviderWrapper>
+        </ToastProvider>
       </body>
     </html>
   );

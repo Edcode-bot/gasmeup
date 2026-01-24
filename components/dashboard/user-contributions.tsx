@@ -7,6 +7,11 @@ import { formatAmountWithToken } from '@/lib/utils';
 import { getExplorerUrl, type SupportedChainId } from '@/lib/blockchain';
 import { TransactionReceiptModal } from '@/components/transaction-receipt-modal';
 import { UserDisplay } from '@/components/user-display';
+import { ContributionSkeleton } from '@/components/skeleton';
+import { CopyTransactionHash } from '@/components/copy-button';
+import { TokenAmountWithChain } from '@/components/chain-icon';
+import { formatRelativeTime } from '@/lib/time-utils';
+import { useToastContext } from '@/components/toast-provider';
 import Link from 'next/link';
 import type { Support } from '@/lib/supabase';
 
@@ -16,6 +21,7 @@ export function UserContributions() {
   const [loading, setLoading] = useState(true);
   const [totalContributed, setTotalContributed] = useState(0);
   const [selectedTx, setSelectedTx] = useState<Support | null>(null);
+  const { success } = useToastContext();
 
   useEffect(() => {
     if (!authenticated || !user?.wallet?.address || !supabaseClient) {
@@ -70,8 +76,12 @@ export function UserContributions() {
   if (loading) {
     return (
       <div className="rounded-lg border border-zinc-200 p-6 dark:border-zinc-800">
-        <h2 className="mb-2 text-xl font-semibold text-foreground">My Contributions</h2>
-        <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
+        <h2 className="mb-4 text-xl font-semibold text-foreground">My Contributions</h2>
+        <div className="space-y-3">
+          <ContributionSkeleton />
+          <ContributionSkeleton />
+          <ContributionSkeleton />
+        </div>
       </div>
     );
   }
@@ -112,14 +122,15 @@ export function UserContributions() {
                     </p>
                   )}
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                    {new Date(contribution.created_at).toLocaleDateString()}
+                    {formatRelativeTime(contribution.created_at)}
                   </p>
                 </div>
                 <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center">
                   <div className="flex flex-col items-end gap-1">
-                    <p className="font-semibold text-[#FFBF00]">
-                      {formatAmountWithToken(Number(contribution.amount), contribution.chain_id)}
-                    </p>
+                    <TokenAmountWithChain 
+                      amount={Number(contribution.amount)}
+                      chainId={contribution.chain_id}
+                    />
                     {contribution.via_contract && (
                       <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs rounded-full px-2 py-0.5 font-medium dark:bg-green-900/20 dark:text-green-400">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,6 +149,9 @@ export function UserContributions() {
                   >
                     View Details
                   </button>
+                  {contribution.tx_hash && (
+                    <CopyTransactionHash txHash={contribution.tx_hash} />
+                  )}
                 </div>
               </div>
             </Link>

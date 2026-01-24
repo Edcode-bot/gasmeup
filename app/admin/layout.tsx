@@ -9,8 +9,7 @@ import { AdminNavbar } from '@/components/admin-navbar';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { ready, authenticated, user } = usePrivy();
-  const userAddress = user?.wallet?.address;
-
+  
   useEffect(() => {
     if (!ready) return;
 
@@ -19,16 +18,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    if (!isAdmin(userAddress)) {
+    if (!isAdmin(user?.wallet?.address)) {
       router.push('/');
       return;
     }
-  }, [ready, authenticated, userAddress, router]);
+  }, [ready, authenticated, user?.wallet?.address, router]);
 
-  if (!ready || !authenticated || !isAdmin(userAddress)) {
+  if (!ready || !authenticated || !isAdmin(user?.wallet?.address)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
+        <p className="text-zinc-600 dark:text-zinc-400">
+          {!authenticated ? 'Connecting...' : 'Access Denied'}
+        </p>
       </div>
     );
   }

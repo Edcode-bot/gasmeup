@@ -5,7 +5,7 @@ import { supabaseClient } from '@/lib/supabase-client';
 import type { Profile } from '@/lib/supabase';
 import { formatAddress } from '@/lib/utils';
 import { Avatar } from '@/components/avatar';
-import { Search, CheckCircle2, XCircle, Ban } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Ban, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminUsersPage() {
@@ -100,6 +100,39 @@ export default function AdminUsersPage() {
       fetchUsers();
     } catch (error) {
       console.error('Failed to toggle verified:', error);
+    }
+  };
+
+  const handleAdminDelete = async (walletAddress: string) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+    
+    const client = supabaseClient;
+    if (!client) return;
+    
+    try {
+      // Delete all related data
+      await Promise.all([
+        // Delete posts
+        client.from('posts').delete().eq('builder_address', walletAddress),
+        
+        // Delete projects
+        client.from('projects').delete().eq('builder_address', walletAddress),
+        
+        // Delete post likes
+        client.from('post_likes').delete().eq('user_address', walletAddress),
+        
+        // Delete comments
+        client.from('post_comments').delete().eq('user_address', walletAddress),
+        
+        // Delete profile
+        client.from('profiles').delete().eq('wallet_address', walletAddress)
+      ]);
+      
+      alert('User deleted successfully');
+      fetchUsers(); // Refresh user list
+    } catch (error) {
+      console.error('Admin delete failed:', error);
+      alert('Failed to delete user');
     }
   };
 
@@ -223,6 +256,12 @@ export default function AdminUsersPage() {
                         >
                           View Profile
                         </Link>
+                        <button
+                          onClick={() => handleAdminDelete(user.wallet_address)}
+                          className="rounded-lg bg-red-100 text-red-700 px-3 py-1.5 text-xs font-medium hover:bg-red-200 dark:bg-red-900 dark:text-red-300"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
                       </div>
                     </td>
                   </tr>

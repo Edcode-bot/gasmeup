@@ -1,29 +1,19 @@
 /**
- * Check if a wallet address is an admin
- * Only these two wallet addresses are admins:
- * - 0x485a01e83C7f89C22d57713191Ee946a607e91EC
- * - 0xb614ab5731bdabe6d326026f85e3e1fce592c4d0
+ * Admin wallet configuration
+ * Configure via NEXT_PUBLIC_ADMIN_WALLETS environment variable
+ * Format: "0x1234...,0xabcd..."
  */
-export function isAdmin(walletAddress: string | null | undefined): boolean {
+const ADMIN_WALLETS = (process.env.NEXT_PUBLIC_ADMIN_WALLETS || '')
+  .split(',')
+  .map(addr => addr.trim().toLowerCase())
+  .filter(addr => addr.length === 42 && addr.startsWith('0x'));
+
+export function isAdmin(walletAddress?: string): boolean {
   if (!walletAddress) return false;
+  return ADMIN_WALLETS.includes(walletAddress.toLowerCase());
+}
 
-  const adminWallets = [
-    '0x485a01e83C7f89C22d57713191Ee946a607e91EC',
-    '0xb614ab5731bdabe6d326026f85e3e1fce592c4d0',
-  ];
-
-  const normalizedInput = walletAddress.toLowerCase().trim();
-  const isAdminAddress = adminWallets.some(
-    (adminWallet) => adminWallet.toLowerCase().trim() === normalizedInput
-  );
-
-  // Debug logging (remove in production)
-  console.log('Admin check:', {
-    input: walletAddress,
-    normalized: normalizedInput,
-    adminWallets: adminWallets.map(w => w.toLowerCase()),
-    isAdmin: isAdminAddress
-  });
-
-  return isAdminAddress;
+// Debug function to check current admin wallets
+export function getAdminWallets(): string[] {
+  return [...ADMIN_WALLETS];
 }

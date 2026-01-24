@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { formatAddress } from '@/lib/utils';
 import { supabaseClient } from '@/lib/supabase-client';
 import type { Profile } from '@/lib/supabase';
+import { logout } from '@privy-io/react-auth';
 
 type FormState = 'loading' | 'idle' | 'saving' | 'success' | 'error';
 
@@ -32,6 +33,11 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('');
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [usernameError, setUsernameError] = useState('');
+  
+  // Delete account state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const walletAddress = user?.wallet?.address?.toLowerCase() || '';
   const isEditMode = !!profile;
@@ -299,6 +305,61 @@ export default function ProfilePage() {
       console.error('Failed to save profile:', err);
       setError(err?.message || 'Failed to save profile. Please try again.');
       setFormState('error');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user?.wallet?.address || !supabaseClient) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      const walletAddress = user.wallet.address.toLowerCase();
+      
+      // Delete all related data
+      await Promise.all([
+        // Delete posts
+        supabaseClient
+          .from('posts')
+          .delete()
+          .eq('builder_address', walletAddress),
+        
+        // Delete projects
+        supabaseClient
+          .from('projects')
+          .delete()
+          .eq('builder_address', walletAddress),
+        
+        // Delete post likes
+        supabaseClient
+          .from('post_likes')
+          .delete()
+          .eq('user_address', walletAddress),
+        
+        // Delete comments
+        supabaseClient
+          .from('post_comments')
+          .delete()
+          .eq('user_address', walletAddress),
+        
+        // Finally, delete profile
+        supabaseClient
+          .from('profiles')
+          .delete()
+          .eq('wallet_address', walletAddress)
+      ]);
+      
+      // Log out user
+      await logout();
+      
+      // Redirect to home
+      router.push('/');
+      
+    } catch (error) {
+      console.error('Delete failed:', error);
+      alert('Failed to delete account. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -595,8 +656,86 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* Delete Account Section - Only show for existing profiles */}
+          {isEditMode && (
+            <div className="border-t border-zinc-200 pt-6 mt-6 dark:border-zinc-700">
+              <h3 className="text-lg font-semibold text-red-600 mb-4">Danger Zone</h3>
+              
+              <div className="rounded-lg border border-red-200 p-4 dark:border-red-800">
+                <h4 className="text-red-600 font-medium mb-2">Delete Account</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Permanently delete your builder profile. This action cannot be undone.
+                </p>
+                
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  This will delete:
+                </p>
+                <ul className="text-sm text-gray-600 dark:text-gray-400 mb-4 space-y-1">
+                  <li>• Your builder profile</li>
+                  <li>• All your posts</li>
+                  <li>• All your projects</li>
+                  <li className="text-green-600">✓ Your received funds are safe (already in your wallet)</li>
+                </ul>
+                
+                <button 
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Delete Account
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Are you absolutely sure?
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              This action cannot be undone. This will permanently delete your
+              account and remove all your data from our servers.
+            </p>
+            
+            <div className="my-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                Type <strong>DELETE</strong> to confirm:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                className="w-full px-3 py-2 border border-zinc-300 rounded-md dark:border-zinc-700 dark:bg-zinc-800 dark:text-foreground"
+                placeholder="Type DELETE"
+              />
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setDeleteConfirmation('');
+                }}
+                className="flex-1 px-4 py-2 border border-zinc-300 rounded-lg text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmation !== 'DELETE' || isDeleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-zinc-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

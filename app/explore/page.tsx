@@ -6,15 +6,17 @@ import { LandingNavbar } from '@/components/landing-navbar';
 import { ConnectWallet } from '@/components/connect-wallet';
 import { BuilderCard } from '@/components/builder-card';
 import { supabaseClient } from '@/lib/supabase-client';
+import { getBuilderChainStats } from '@/lib/chain-stats';
 import type { Profile } from '@/lib/supabase';
 
-interface BuilderWithTotal extends Profile {
-  total_received: number;
+interface BuilderWithTotals extends Profile {
+  base_total?: number;
+  celo_total?: number;
 }
 
 export default function ExplorePage() {
   const { ready, authenticated } = usePrivy();
-  const [builders, setBuilders] = useState<BuilderWithTotal[]>([]);
+  const [builders, setBuilders] = useState<BuilderWithTotals[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -46,26 +48,25 @@ export default function ExplorePage() {
           return;
         }
 
-        // Fetch total received for each builder
+        // Fetch chain totals for each builder
         const buildersWithTotals = await Promise.all(
           profiles.map(async (profile) => {
-            const { data: supports } = await client
-              .from('supports')
-              .select('amount')
-              .eq('to_address', profile.wallet_address);
-
-            const totalReceived =
-              supports?.reduce((sum, support) => sum + Number(support.amount), 0) || 0;
+            const chainStats = await getBuilderChainStats(profile.wallet_address);
 
             return {
               ...profile,
-              total_received: totalReceived,
+              base_total: chainStats.base.total,
+              celo_total: chainStats.celo.total,
             };
           })
         );
 
         // Sort by total received (descending)
-        buildersWithTotals.sort((a, b) => b.total_received - a.total_received);
+        buildersWithTotals.sort((a, b) => {
+          const totalA = (a.base_total || 0) + (a.celo_total || 0);
+          const totalB = (b.base_total || 0) + (b.celo_total || 0);
+          return totalB - totalA;
+        });
 
         setBuilders(buildersWithTotals);
       } catch (err) {

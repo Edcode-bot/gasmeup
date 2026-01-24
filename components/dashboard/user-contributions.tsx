@@ -9,6 +9,7 @@ import { TransactionReceiptModal } from '@/components/transaction-receipt-modal'
 import { UserDisplay } from '@/components/user-display';
 import { ContributionSkeleton } from '@/components/skeleton';
 import { CopyTransactionHash } from '@/components/copy-button';
+import { CopyProfileUrl } from '@/components/copy-button';
 import { TokenAmountWithChain } from '@/components/chain-icon';
 import { formatRelativeTime } from '@/lib/time-utils';
 import { useToastContext } from '@/components/toast-provider';
@@ -151,6 +152,10 @@ export function UserContributions() {
                   {contribution.tx_hash && (
                     <CopyTransactionHash txHash={contribution.tx_hash} />
                   )}
+                  <CopyProfileUrl 
+                    address={contribution.to_address}
+                    className="text-xs mt-1"
+                  />
                 </div>
               </div>
             </Link>

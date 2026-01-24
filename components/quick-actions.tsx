@@ -61,6 +61,7 @@ export function QuickActions() {
       component: (
         <CopyProfileUrl 
           address={user?.wallet?.address || ''}
+          username={profile?.username || undefined}
           className="w-full justify-start"
         />
       )
@@ -175,10 +176,11 @@ export function QuickActionsCompact() {
     <div className="flex flex-wrap gap-2">
       <CopyProfileUrl 
         address={user?.wallet?.address || ''}
+        username={profile?.username || undefined}
         className="text-sm"
       />
       <ShareProfile 
-        username={profile.username}
+        username={profile?.username || undefined}
         address={user?.wallet?.address || ''}
         className="text-sm"
       />

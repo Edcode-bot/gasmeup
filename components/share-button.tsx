@@ -102,7 +102,9 @@ export function ShareProfile({ username, address, className }: {
   address: string; 
   className?: string;
 }) {
-  const profileUrl = `https://gasmeup-sable.vercel.app/builder/${address}`;
+  const profileUrl = username 
+    ? `https://gasmeup-sable.vercel.app/@${username}`
+    : `https://gasmeup-sable.vercel.app/builder/${address}`;
   const displayName = username || `builder`;
   
   return (

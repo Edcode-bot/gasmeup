@@ -12,6 +12,7 @@ import { formatAddress } from '@/lib/user-utils';
 import { NoSupportersEmpty } from '@/components/empty-state';
 import { TokenAmountWithChain } from '@/components/chain-icon';
 import { formatRelativeTime } from '@/lib/time-utils';
+import { getBuilderChainStats, getChainName } from '@/lib/chain-stats';
 
 interface BuilderPageProps {
   params: Promise<{ address: string }>;
@@ -50,10 +51,13 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
   // Fetch recent supports for display (last 10)
   const supports = allSupports?.slice(0, 10) || [];
 
-  // Calculate stats
-  const totalRaised = allSupports?.reduce((sum, support) => sum + Number(support.amount), 0) || 0;
-  const uniqueSupporters = new Set(allSupports?.map(s => s.from_address) || []).size;
-  const totalContributions = allSupports?.length || 0;
+  // Get chain-specific stats
+  const chainStats = await getBuilderChainStats(address);
+  
+  // Calculate legacy stats for compatibility
+  const totalRaised = chainStats.base.total + chainStats.celo.total;
+  const uniqueSupporters = new Set([...chainStats.base.supporters, ...chainStats.celo.supporters]).size;
+  const totalContributions = chainStats.base.count + chainStats.celo.count;
   const averageContribution = totalContributions > 0 ? totalRaised / totalContributions : 0;
   
   // Calculate contributions this month
@@ -63,7 +67,10 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
     (s) => new Date(s.created_at) >= startOfMonth
   ).length || 0;
   
-  const profileUrl = `https://gasmeup-sable.vercel.app/builder/${address}`;
+  // Use @username URL if available, otherwise fallback to address
+  const profileUrl = profile?.username 
+    ? `https://gasmeup-sable.vercel.app/@${profile.username}`
+    : `https://gasmeup-sable.vercel.app/builder/${address}`;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -111,12 +118,33 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
             <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
               <h2 className="mb-4 text-xl font-semibold text-foreground sm:text-2xl">Funding Stats</h2>
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-zinc-600 dark:text-zinc-400">Total Raised</span>
-                  <span className="font-semibold text-foreground">
-                    {totalRaised.toFixed(4)} (multi-chain)
-                  </span>
+                {/* Chain-specific totals */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/20 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-blue-600 text-xs font-medium dark:text-blue-400">Base</span>
+                    </div>
+                    <p className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                      {chainStats.base.total.toFixed(4)} ETH
+                    </p>
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      {chainStats.base.count} supporters
+                    </p>
+                  </div>
+                  
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 dark:bg-yellow-900/20 dark:border-yellow-800">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-yellow-600 text-xs font-medium dark:text-yellow-400">Celo</span>
+                    </div>
+                    <p className="text-lg font-bold text-yellow-900 dark:text-yellow-100">
+                      {chainStats.celo.total.toFixed(4)} CELO
+                    </p>
+                    <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                      {chainStats.celo.count} supporters
+                    </p>
+                  </div>
                 </div>
+                
                 <div className="flex justify-between items-center">
                   <span className="text-zinc-600 dark:text-zinc-400">Total Supporters</span>
                   <span className="font-semibold text-foreground">{uniqueSupporters}</span>

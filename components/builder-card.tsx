@@ -5,10 +5,15 @@ import { Avatar } from '@/components/avatar';
 import { SocialLinks } from '@/components/social-links';
 import { VerifiedBadge } from '@/components/verified-badge';
 import { formatAddress } from '@/lib/user-utils';
+import { getChainBadgeClass } from '@/lib/chain-stats';
 import type { Profile } from '@/lib/supabase';
 
 interface BuilderCardProps {
-  builder: Profile & { total_received?: number };
+  builder: Profile & { 
+    total_received?: number;
+    base_total?: number;
+    celo_total?: number;
+  };
   showStats?: boolean;
 }
 
@@ -47,13 +52,22 @@ export function BuilderCard({ builder, showStats = false }: BuilderCardProps) {
         </p>
       )}
       <div className="flex items-center justify-between border-t border-zinc-200 pt-4 dark:border-zinc-700">
-        {showStats && builder.total_received !== undefined ? (
-          <>
+        {showStats && (builder.base_total !== undefined || builder.celo_total !== undefined) ? (
+          <div className="flex flex-col gap-2">
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Total Received</span>
-            <span className="text-lg font-bold text-[#FFBF00]">
-              {builder.total_received.toFixed(4)} (multi-chain)
-            </span>
-          </>
+            <div className="flex gap-2 flex-wrap">
+              {builder.base_total && builder.base_total > 0 && (
+                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getChainBadgeClass(8453)}`}>
+                  {builder.base_total.toFixed(4)} ETH
+                </span>
+              )}
+              {builder.celo_total && builder.celo_total > 0 && (
+                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getChainBadgeClass(42220)}`}>
+                  {builder.celo_total.toFixed(4)} CELO
+                </span>
+              )}
+            </div>
+          </div>
         ) : hasSocialLinks ? (
           <SocialLinks
             twitterUrl={builder.twitter_url}

@@ -81,8 +81,14 @@ export function CopyAddress({ address, className }: { address: string; className
   );
 }
 
-export function CopyProfileUrl({ address, className }: { address: string; className?: string }) {
-  const profileUrl = `https://gasmeup-sable.vercel.app/builder/${address}`;
+export function CopyProfileUrl({ address, username, className }: { 
+  address: string; 
+  username?: string;
+  className?: string;
+}) {
+  const profileUrl = username 
+    ? `https://gasmeup-sable.vercel.app/@${username}`
+    : `https://gasmeup-sable.vercel.app/builder/${address}`;
   
   return (
     <CopyButton 

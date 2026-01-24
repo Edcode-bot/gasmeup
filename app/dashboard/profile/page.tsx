@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useLogout } from '@privy-io/react-auth';
 import { DashboardNavbar } from '@/components/dashboard-navbar';
 import { Avatar } from '@/components/avatar';
 import { SocialLinks } from '@/components/social-links';
@@ -11,13 +11,13 @@ import Link from 'next/link';
 import { formatAddress } from '@/lib/utils';
 import { supabaseClient } from '@/lib/supabase-client';
 import type { Profile } from '@/lib/supabase';
-import { logout } from '@privy-io/react-auth';
 
 type FormState = 'loading' | 'idle' | 'saving' | 'success' | 'error';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { ready, authenticated, user } = usePrivy();
+  const { logout } = useLogout();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [formState, setFormState] = useState<FormState>('loading');
   const [error, setError] = useState<string>('');

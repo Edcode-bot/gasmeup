@@ -8,6 +8,11 @@ interface UsernamePageProps {
 export default async function UsernamePage({ params }: UsernamePageProps) {
   const { username } = await params;
   
+  // Check if username exists
+  if (!username || typeof username !== 'string') {
+    notFound();
+  }
+  
   // Remove @ if present and clean up
   const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
   
@@ -28,12 +33,19 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
 
 // Generate static params for known usernames (optional optimization)
 export async function generateStaticParams() {
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('username')
-    .not('username', 'is', null);
+  try {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('username')
+      .not('username', 'is', null);
 
-  return (profiles || []).map((profile) => ({
-    username: profile.username,
-  }));
+    return (profiles || [])
+      .filter((profile) => profile.username && typeof profile.username === 'string')
+      .map((profile) => ({
+        username: profile.username,
+      }));
+  } catch (error) {
+    console.error('Error generating static params for usernames:', error);
+    return [];
+  }
 }

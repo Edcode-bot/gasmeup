@@ -9,6 +9,9 @@ import { CopyLinkButton } from '@/components/copy-link-button';
 import { VerifiedBadge } from '@/components/verified-badge';
 import { UserDisplay } from '@/components/user-display';
 import { formatAddress } from '@/lib/user-utils';
+import { NoSupportersEmpty } from '@/components/empty-state';
+import { TokenAmountWithChain } from '@/components/chain-icon';
+import { formatRelativeTime } from '@/lib/time-utils';
 
 interface BuilderPageProps {
   params: Promise<{ address: string }>;
@@ -174,7 +177,8 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
             <div className="mt-4 overflow-x-auto sm:mt-6">
               <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
                 <h2 className="mb-4 text-xl font-semibold text-foreground sm:text-2xl">Recent Contributions</h2>
-                <div className="space-y-3">
+                {supports.length > 0 ? (
+                <div className="space-y-4">
                   {supports.map((support) => (
                     <div
                       key={support.id}
@@ -193,17 +197,24 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
                           </p>
                         )}
                         <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-                          {new Date(support.created_at).toLocaleDateString()}
+                          {formatRelativeTime(support.created_at)}
                         </p>
                       </div>
                       <div className="text-left sm:text-right">
-                        <p className="font-semibold text-[#FFBF00]">
-                          {formatAmountWithToken(Number(support.amount), support.chain_id)}
-                        </p>
+                        <TokenAmountWithChain 
+                          amount={Number(support.amount)}
+                          chainId={support.chain_id}
+                        />
                       </div>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <NoSupportersEmpty 
+                  address={address} 
+                  username={profile?.username}
+                />
+              )}
               </div>
             </div>
           )}

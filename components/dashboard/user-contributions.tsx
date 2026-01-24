@@ -12,6 +12,7 @@ import { CopyTransactionHash } from '@/components/copy-button';
 import { TokenAmountWithChain } from '@/components/chain-icon';
 import { formatRelativeTime } from '@/lib/time-utils';
 import { useToastContext } from '@/components/toast-provider';
+import { NoContributionsEmpty } from '@/components/empty-state';
 import Link from 'next/link';
 import type { Support } from '@/lib/supabase';
 
@@ -97,9 +98,7 @@ export function UserContributions() {
         )}
       </div>
       {contributions.length === 0 ? (
-        <p className="text-zinc-600 dark:text-zinc-400">
-          You haven't made any contributions yet. Start supporting builders!
-        </p>
+        <NoContributionsEmpty />
       ) : (
         <div className="space-y-3">
           {contributions.map((contribution) => (

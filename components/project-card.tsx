@@ -22,6 +22,9 @@ export function ProjectCard({
     : 0;
   
   const statusColors = {
+    idea: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    building: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    live: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     completed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     archived: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200',
@@ -53,6 +56,14 @@ export function ProjectCard({
         <h3 className="mb-2 text-xl font-bold text-foreground group-hover:text-[#FFBF00] transition-colors">
           {project.title}
         </h3>
+
+        {project.what_building && (
+          <div className="mb-3 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              🚀 {project.what_building}
+            </p>
+          </div>
+        )}
 
         {showBuilder && project.builder && (
           <Link

@@ -10,6 +10,10 @@ import { SocialLinks } from '@/components/social-links';
 import { VerifiedBadge } from '@/components/verified-badge';
 import { CopyLinkButton } from '@/components/copy-link-button';
 import { CommentSection } from '@/components/posts/comment-section';
+import { Milestones } from '@/components/milestones';
+import { ProjectUpdates } from '@/components/project-updates';
+import { FundingInfo } from '@/components/funding-info';
+import { BuilderCredibility } from '@/components/builder-credibility';
 import { formatAddress } from '@/lib/utils';
 import { supabaseClient } from '@/lib/supabase-client';
 import { usePrivy } from '@privy-io/react-auth';
@@ -21,7 +25,7 @@ import { ExternalLink, Github, ArrowLeft, Users, DollarSign, Target } from 'luci
 export default function SingleProjectPage() {
   const params = useParams();
   const router = useRouter();
-  const { ready, authenticated } = usePrivy();
+  const { ready, authenticated, user } = usePrivy();
   const [projectId, setProjectId] = useState<string>('');
   const [project, setProject] = useState<(Project & { builder?: Profile | null }) | null>(null);
   const [recentContributors, setRecentContributors] = useState<(Support & { profile?: Profile | null })[]>([]);
@@ -117,6 +121,8 @@ export default function SingleProjectPage() {
     ? Math.min((Number(project.raised_amount) / Number(project.goal_amount)) * 100, 100)
     : 0;
 
+  const isOwner = authenticated && user?.wallet?.address === project?.builder_address.toLowerCase();
+
   const NavComponent = ready && authenticated ? DashboardNavbar : Navbar;
 
   if (loading) {
@@ -209,6 +215,35 @@ export default function SingleProjectPage() {
                 </p>
               </div>
 
+              {/* What I'm Building */}
+              {project.what_building && (
+                <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                  <h2 className="mb-4 text-xl font-semibold text-foreground">🚀 What I'm Building</h2>
+                  <p className="text-zinc-600 dark:text-zinc-400 font-medium">
+                    {project.what_building}
+                  </p>
+                </div>
+              )}
+
+              {/* Funding Information */}
+              <div className="mb-6">
+                <FundingInfo project={project} />
+              </div>
+
+              {/* Milestones */}
+              <div className="mb-6">
+                <Milestones projectId={projectId} isOwner={isOwner} />
+              </div>
+
+              {/* Progress Updates */}
+              <div className="mb-6">
+                <ProjectUpdates 
+                  projectId={projectId} 
+                  builderAddress={project.builder_address}
+                  isOwner={isOwner}
+                />
+              </div>
+
               {/* Links */}
               <div className="mb-6 flex flex-wrap gap-4">
                 {project.live_url && (
@@ -284,7 +319,7 @@ export default function SingleProjectPage() {
 
               {/* Funding Section */}
               <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                <h3 className="mb-4 text-lg font-semibold text-foreground">Funding</h3>
+                <h3 className="mb-4 text-lg font-semibold text-foreground">Fund This Milestone</h3>
                 
                 {project.goal_amount && project.goal_amount > 0 ? (
                   <>
@@ -328,9 +363,16 @@ export default function SingleProjectPage() {
                   href={`/projects/${projectId}/fund`}
                   className="block w-full rounded-lg bg-[#FFBF00] px-6 py-3 text-center font-semibold text-black transition-colors hover:bg-[#FFD700]"
                 >
-                  Fund This Project
+                  Fund This Work
                 </Link>
               </div>
+
+              {/* Builder Credibility */}
+              {project.builder && (
+                <div className="mb-6">
+                  <BuilderCredibility profile={project.builder} />
+                </div>
+              )}
 
               {/* Recent Contributors */}
               {recentContributors.length > 0 && (

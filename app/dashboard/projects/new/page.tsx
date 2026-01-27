@@ -11,17 +11,25 @@ import Link from 'next/link';
 
 const MAX_TITLE_LENGTH = 100;
 const MAX_DESCRIPTION_LENGTH = 2000;
+const MAX_WHAT_BUILDING_LENGTH = 140;
 
 export default function NewProjectPage() {
   const router = useRouter();
   const { ready, authenticated, user } = usePrivy();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [whatBuilding, setWhatBuilding] = useState('');
+  const [fundingReason, setFundingReason] = useState('');
+  const [fundingGoal, setFundingGoal] = useState('');
+  const [supporterPerks, setSupporterPerks] = useState('');
+  const [fundsUsageDev, setFundsUsageDev] = useState('');
+  const [fundsUsageInfra, setFundsUsageInfra] = useState('');
+  const [fundsUsageOps, setFundsUsageOps] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [liveUrl, setLiveUrl] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
-  const [status, setStatus] = useState<'active' | 'completed' | 'archived'>('active');
+  const [status, setStatus] = useState<'idea' | 'building' | 'live' | 'active' | 'completed' | 'archived'>('idea');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
@@ -70,6 +78,21 @@ export default function NewProjectPage() {
       return;
     }
 
+    if (!whatBuilding.trim()) {
+      setError('What I\'m building is required');
+      return;
+    }
+
+    if (whatBuilding.length > MAX_WHAT_BUILDING_LENGTH) {
+      setError(`What I'm building must be ${MAX_WHAT_BUILDING_LENGTH} characters or less`);
+      return;
+    }
+
+    if (!fundingReason.trim()) {
+      setError('Funding reason is required');
+      return;
+    }
+
     if (!imageUrl.trim()) {
       setError('Project image is required');
       return;
@@ -103,6 +126,13 @@ export default function NewProjectPage() {
           builder_address: walletAddress,
           title: title.trim(),
           description: description.trim(),
+          what_building: whatBuilding.trim(),
+          funding_reason: fundingReason.trim(),
+          funding_goal: fundingGoal ? parseFloat(fundingGoal) : null,
+          supporter_perks: supporterPerks.trim() || null,
+          funds_usage_dev: fundsUsageDev.trim() || null,
+          funds_usage_infra: fundsUsageInfra.trim() || null,
+          funds_usage_ops: fundsUsageOps.trim() || null,
           image_url: imageUrl.trim(),
           live_url: liveUrl.trim() || null,
           github_url: githubUrl.trim() || null,
@@ -188,6 +218,123 @@ export default function NewProjectPage() {
               </p>
             </div>
 
+            {/* What I'm Building */}
+            <div>
+              <label htmlFor="whatBuilding" className="mb-2 block text-sm font-medium text-foreground">
+                🚀 What I'm Building <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="whatBuilding"
+                type="text"
+                value={whatBuilding}
+                onChange={(e) => setWhatBuilding(e.target.value)}
+                maxLength={MAX_WHAT_BUILDING_LENGTH}
+                placeholder="Building a decentralized social platform with AI-powered moderation"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
+              />
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                {whatBuilding.length}/{MAX_WHAT_BUILDING_LENGTH} characters • Short description for project cards
+              </p>
+            </div>
+
+            {/* Funding Reason */}
+            <div>
+              <label htmlFor="fundingReason" className="mb-2 block text-sm font-medium text-foreground">
+                💰 Why fund this milestone? <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="fundingReason"
+                value={fundingReason}
+                onChange={(e) => setFundingReason(e.target.value)}
+                rows={3}
+                placeholder="Cover infrastructure costs + ship feature X for 3 months of development"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
+              />
+            </div>
+
+            {/* Funding Goal */}
+            <div>
+              <label htmlFor="fundingGoal" className="mb-2 block text-sm font-medium text-foreground">
+                🎯 Funding Target (USD, optional)
+              </label>
+              <input
+                id="fundingGoal"
+                type="number"
+                value={fundingGoal}
+                onChange={(e) => setFundingGoal(e.target.value)}
+                placeholder="5000"
+                min="0"
+                step="0.01"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
+              />
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                Informational target to show progress
+              </p>
+            </div>
+
+            {/* Supporter Perks */}
+            <div>
+              <label htmlFor="supporterPerks" className="mb-2 block text-sm font-medium text-foreground">
+                🎁 Supporters Get (optional)
+              </label>
+              <textarea
+                id="supporterPerks"
+                value={supporterPerks}
+                onChange={(e) => setSupporterPerks(e.target.value)}
+                rows={3}
+                placeholder="Early access to beta&#10;Product credits&#10;Influence on roadmap&#10;Recognition as founding supporter"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
+              />
+            </div>
+
+            {/* Funds Usage */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-foreground">
+                📊 How Funds Will Be Used (optional)
+              </label>
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="fundsUsageDev" className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Development (%)
+                  </label>
+                  <input
+                    id="fundsUsageDev"
+                    type="text"
+                    value={fundsUsageDev}
+                    onChange={(e) => setFundsUsageDev(e.target.value)}
+                    placeholder="60%"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="fundsUsageInfra" className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Infrastructure (%)
+                  </label>
+                  <input
+                    id="fundsUsageInfra"
+                    type="text"
+                    value={fundsUsageInfra}
+                    onChange={(e) => setFundsUsageInfra(e.target.value)}
+                    placeholder="25%"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="fundsUsageOps" className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Operations/Audit (%)
+                  </label>
+                  <input
+                    id="fundsUsageOps"
+                    type="text"
+                    value={fundsUsageOps}
+                    onChange={(e) => setFundsUsageOps(e.target.value)}
+                    placeholder="15%"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Image URL */}
             <div>
               <label htmlFor="imageUrl" className="mb-2 block text-sm font-medium text-foreground">
@@ -271,12 +418,15 @@ export default function NewProjectPage() {
               <select
                 id="status"
                 value={status}
-                onChange={(e) => setStatus(e.target.value as 'active' | 'completed' | 'archived')}
+                onChange={(e) => setStatus(e.target.value as 'idea' | 'building' | 'live' | 'active' | 'completed' | 'archived')}
                 className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900"
               >
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="archived">Archived</option>
+                <option value="idea">💡 Idea</option>
+                <option value="building">🔨 Building</option>
+                <option value="live">🚀 Live</option>
+                <option value="active">✅ Active</option>
+                <option value="completed">🎉 Completed</option>
+                <option value="archived">📦 Archived</option>
               </select>
             </div>
 

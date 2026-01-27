@@ -30,6 +30,9 @@ export default function ProfilePage() {
   const [twitterUrl, setTwitterUrl] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [githubUsername, setGithubUsername] = useState('');
+  const [karmaGapProfile, setKarmaGapProfile] = useState('');
+  const [talentProtocolProfile, setTalentProtocolProfile] = useState('');
   const [email, setEmail] = useState('');
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [usernameError, setUsernameError] = useState('');
@@ -84,6 +87,9 @@ export default function ProfilePage() {
           setTwitterUrl(data.twitter_url || '');
           setGithubUrl(data.github_url || '');
           setLinkedinUrl(data.linkedin_url || '');
+          setGithubUsername(data.github_username || '');
+          setKarmaGapProfile(data.karma_gap_profile || '');
+          setTalentProtocolProfile(data.talent_protocol_profile || '');
           setEmail(data.email || '');
           setEmailNotifications(data.email_notifications !== false);
         }
@@ -270,6 +276,9 @@ export default function ProfilePage() {
         twitter_url: validatedTwitterUrl,
         github_url: validatedGithubUrl,
         linkedin_url: validatedLinkedinUrl,
+        github_username: githubUsername.trim() || null,
+        karma_gap_profile: karmaGapProfile.trim() || null,
+        talent_protocol_profile: talentProtocolProfile.trim() || null,
         email: email.trim() || null,
         email_notifications: emailNotifications,
       };
@@ -550,6 +559,22 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-foreground">
+                    🐙 GitHub Username
+                  </label>
+                  <input
+                    type="text"
+                    value={githubUsername}
+                    onChange={(e) => setGithubUsername(e.target.value)}
+                    placeholder="yourusername"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-foreground placeholder:text-zinc-400 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder:text-zinc-500"
+                  />
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Optional: Your GitHub username (for credibility links)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
                     LinkedIn URL
                   </label>
                   <input
@@ -561,6 +586,43 @@ export default function ProfilePage() {
                   />
                   <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     Optional: Your LinkedIn profile URL
+                  </p>
+                </div>
+              </div>
+
+              {/* External Integrations */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-foreground">🔗 External Integrations</h3>
+                
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
+                    🛡️ Karma GAP Profile
+                  </label>
+                  <input
+                    type="url"
+                    value={karmaGapProfile}
+                    onChange={(e) => setKarmaGapProfile(e.target.value)}
+                    placeholder="https://karmagap.xyz/profile/youraddress"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-foreground placeholder:text-zinc-400 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder:text-zinc-500"
+                  />
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Optional: Your Karma GAP profile URL for onchain reputation
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
+                    🏆 Talent Protocol Profile
+                  </label>
+                  <input
+                    type="url"
+                    value={talentProtocolProfile}
+                    onChange={(e) => setTalentProtocolProfile(e.target.value)}
+                    placeholder="https://app.talentprotocol.com/talent/yourusername"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-foreground placeholder:text-zinc-400 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder:text-zinc-500"
+                  />
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Optional: Your Talent Protocol profile URL for builder credentials
                   </p>
                 </div>
               </div>

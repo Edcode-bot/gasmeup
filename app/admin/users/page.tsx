@@ -109,13 +109,44 @@ export default function AdminUsersPage() {
     const client = supabaseClient;
     if (!client) return;
     
+    // Show loading state
+    const deleteButton = document.querySelector(`[data-delete-address="${walletAddress}"]`) as HTMLButtonElement;
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.textContent = 'Deleting...';
+    }
+    
     try {
       const normalizedAddress = walletAddress.toLowerCase();
       
       console.log('🗑️ Admin deleting user:', normalizedAddress);
       
+      // First, get all projects for this user to delete related data
+      const { data: userProjects } = await client
+        .from('projects')
+        .select('id')
+        .eq('builder_address', normalizedAddress);
+      
+      const projectIds = userProjects?.map(p => p.id) || [];
+      
       // Delete in order of dependencies to avoid foreign key constraints
-      const deletionResults = await Promise.allSettled([
+      const deletionSteps = [];
+      
+      // Delete project-related data first
+      if (projectIds.length > 0) {
+        // Delete milestones for user's projects
+        deletionSteps.push(
+          client.from('milestones').delete().in('project_id', projectIds)
+        );
+        
+        // Delete project updates for user's projects
+        deletionSteps.push(
+          client.from('project_updates').delete().in('project_id', projectIds)
+        );
+      }
+      
+      // Delete user-related data
+      deletionSteps.push(
         // Delete post likes first
         client.from('post_likes').delete().eq('user_address', normalizedAddress),
         
@@ -136,7 +167,10 @@ export default function AdminUsersPage() {
         
         // Delete profile
         client.from('profiles').delete().eq('wallet_address', normalizedAddress)
-      ]);
+      );
+      
+      // Execute all deletions
+      const deletionResults = await Promise.allSettled(deletionSteps);
       
       // Check if any deletions failed
       const failedDeletions = deletionResults.filter(result => result.status === 'rejected');
@@ -145,12 +179,29 @@ export default function AdminUsersPage() {
         throw new Error('Some data could not be deleted. Please try again.');
       }
       
-      console.log('✅ Admin user deletion completed successfully');
+      // Verify deletion was successful by checking if user still exists
+      const { data: remainingUser } = await client
+        .from('profiles')
+        .select('wallet_address')
+        .eq('wallet_address', normalizedAddress)
+        .single();
+      
+      if (remainingUser) {
+        throw new Error('User still exists in database after deletion attempt');
+      }
+      
+      console.log('✅ Admin user deletion completed successfully - VERIFIED');
       alert('User deleted successfully');
       fetchUsers(); // Refresh user list
     } catch (error) {
       console.error('❌ Admin delete failed:', error);
-      alert('Failed to delete user');
+      alert(`Failed to delete user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      // Restore button state
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.textContent = 'Delete';
+      }
     }
   };
 
@@ -276,6 +327,7 @@ export default function AdminUsersPage() {
                         </Link>
                         <button
                           onClick={() => handleAdminDelete(user.wallet_address)}
+                          data-delete-address={user.wallet_address}
                           className="rounded-lg bg-red-100 text-red-700 px-3 py-1.5 text-xs font-medium hover:bg-red-200 dark:bg-red-900 dark:text-red-300"
                         >
                           <Trash2 className="h-3 w-3" />

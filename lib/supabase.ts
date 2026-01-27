@@ -21,6 +21,9 @@ export type Profile = {
   twitter_url: string | null;
   github_url: string | null;
   linkedin_url: string | null;
+  github_username: string | null;
+  karma_gap_profile: string | null;
+  talent_protocol_profile: string | null;
   verified: boolean;
   verified_at: string | null;
   email: string | null;
@@ -80,7 +83,15 @@ export type Project = {
   github_url: string | null;
   goal_amount: number | null;
   raised_amount: number;
-  status: 'active' | 'completed' | 'archived';
+  status: 'idea' | 'building' | 'live' | 'active' | 'completed' | 'archived';
+  what_building: string | null;
+  funding_reason: string | null;
+  funding_goal: number | null;
+  supporter_perks: string | null;
+  funds_usage_dev: string | null;
+  funds_usage_infra: string | null;
+  funds_usage_ops: string | null;
+  is_featured: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -102,4 +113,24 @@ export type ContactMessage = {
   email: string;
   message: string;
   created_at: string;
+};
+
+export type Milestone = {
+  id: string;
+  project_id: string;
+  title: string;
+  funding_target: number | null;
+  status: 'open' | 'completed';
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProjectUpdate = {
+  id: string;
+  project_id: string;
+  builder_address: string;
+  title: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
 };

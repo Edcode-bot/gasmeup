@@ -21,7 +21,7 @@ export default function ButtonsPage() {
 
   const walletAddress = user?.wallet?.address?.toLowerCase() || '';
   const profileUrl = walletAddress ? 
-    (profile?.username ? `${getBaseUrl()}/@${profile.username}` : `${getBaseUrl()}/builder/${walletAddress}`) : '';
+    (profile?.username ? `${getBaseUrl()}/${profile.username}` : `${getBaseUrl()}/builder/${walletAddress}`) : '';
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
   const projectUrl = selectedProject ? `${getBaseUrl()}/projects/${selectedProjectId}` : '';
 

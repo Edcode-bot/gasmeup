@@ -89,7 +89,7 @@ export function CopyProfileUrl({ address, username, className }: {
 }) {
   const baseUrl = getBaseUrl();
   const profileUrl = username 
-    ? `${baseUrl}/@${username}`
+    ? `${baseUrl}/${username}`
     : `${baseUrl}/builder/${address}`;
   
   return (

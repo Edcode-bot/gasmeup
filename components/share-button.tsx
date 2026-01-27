@@ -105,7 +105,7 @@ export function ShareProfile({ username, address, className }: {
 }) {
   const baseUrl = getBaseUrl();
   const profileUrl = username 
-    ? `${baseUrl}/@${username}`
+    ? `${baseUrl}/${username}`
     : `${baseUrl}/builder/${address}`;
   const displayName = username || `builder`;
   

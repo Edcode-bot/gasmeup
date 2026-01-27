@@ -67,9 +67,9 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
     (s) => new Date(s.created_at) >= startOfMonth
   ).length || 0;
   
-  // Use @username URL if available, otherwise fallback to address
+  // Use clean username URL if available, otherwise fallback to address
   const profileUrl = profile?.username 
-    ? `https://gasmeup-sable.vercel.app/@${profile.username}`
+    ? `https://gasmeup-sable.vercel.app/${profile.username}`
     : `https://gasmeup-sable.vercel.app/builder/${address}`;
 
   return (

@@ -121,78 +121,160 @@ export default function AdminUsersPage() {
       
       console.log('🗑️ Admin deleting user:', normalizedAddress);
       
-      // First, get all projects for this user to delete related data
-      const { data: userProjects } = await client
+      // Step 1: Get all projects for this user to delete related data first
+      const { data: userProjects, error: projectError } = await client
         .from('projects')
         .select('id')
         .eq('builder_address', normalizedAddress);
       
-      const projectIds = userProjects?.map(p => p.id) || [];
+      if (projectError) {
+        console.error('❌ Failed to get user projects:', projectError);
+        throw new Error('Failed to retrieve user projects for deletion');
+      }
       
-      // Delete in order of dependencies to avoid foreign key constraints
-      const deletionSteps = [];
+      const projectIds = userProjects?.map(p => p.id) || [];
+      console.log('📋 Found projects to delete:', projectIds.length);
+      
+      // Step 2: Delete in proper order to avoid foreign key constraints
       
       // Delete project-related data first
       if (projectIds.length > 0) {
+        console.log('🗂️ Deleting project-related data...');
+        
         // Delete milestones for user's projects
-        deletionSteps.push(
-          client.from('milestones').delete().in('project_id', projectIds)
-        );
+        const { error: milestonesError } = await client
+          .from('milestones')
+          .delete()
+          .in('project_id', projectIds);
+        
+        if (milestonesError) {
+          console.error('❌ Failed to delete milestones:', milestonesError);
+          throw new Error('Failed to delete project milestones');
+        }
         
         // Delete project updates for user's projects
-        deletionSteps.push(
-          client.from('project_updates').delete().in('project_id', projectIds)
-        );
+        const { error: updatesError } = await client
+          .from('project_updates')
+          .delete()
+          .in('project_id', projectIds);
+        
+        if (updatesError) {
+          console.error('❌ Failed to delete project updates:', updatesError);
+          throw new Error('Failed to delete project updates');
+        }
+        
+        // Delete the projects themselves
+        const { error: projectsDeleteError } = await client
+          .from('projects')
+          .delete()
+          .eq('builder_address', normalizedAddress);
+        
+        if (projectsDeleteError) {
+          console.error('❌ Failed to delete projects:', projectsDeleteError);
+          throw new Error('Failed to delete user projects');
+        }
       }
       
-      // Delete user-related data
-      deletionSteps.push(
-        // Delete post likes first
-        client.from('post_likes').delete().eq('user_address', normalizedAddress),
-        
-        // Delete post comments
-        client.from('post_comments').delete().eq('user_address', normalizedAddress),
-        
-        // Delete notifications for this user
-        client.from('notifications').delete().eq('user_address', normalizedAddress),
-        
-        // Delete supports where user is either sender or receiver
-        client.from('supports').delete().or(`from_address.eq.${normalizedAddress},to_address.eq.${normalizedAddress}`),
-        
-        // Delete posts
-        client.from('posts').delete().eq('builder_address', normalizedAddress),
-        
-        // Delete projects
-        client.from('projects').delete().eq('builder_address', normalizedAddress),
-        
-        // Delete profile
-        client.from('profiles').delete().eq('wallet_address', normalizedAddress)
-      );
+      console.log('🗂️ Deleting user-related data...');
       
-      // Execute all deletions
-      const deletionResults = await Promise.allSettled(deletionSteps);
+      // Step 3: Delete user-related data
+      // Delete post likes first
+      const { error: likesError } = await client
+        .from('post_likes')
+        .delete()
+        .eq('user_address', normalizedAddress);
       
-      // Check if any deletions failed
-      const failedDeletions = deletionResults.filter(result => result.status === 'rejected');
-      if (failedDeletions.length > 0) {
-        console.error('Some deletions failed:', failedDeletions);
-        throw new Error('Some data could not be deleted. Please try again.');
+      if (likesError) {
+        console.error('❌ Failed to delete post likes:', likesError);
+        throw new Error('Failed to delete user post likes');
       }
       
-      // Verify deletion was successful by checking if user still exists
-      const { data: remainingUser } = await client
+      // Delete post comments
+      const { error: commentsError } = await client
+        .from('post_comments')
+        .delete()
+        .eq('user_address', normalizedAddress);
+      
+      if (commentsError) {
+        console.error('❌ Failed to delete post comments:', commentsError);
+        throw new Error('Failed to delete user post comments');
+      }
+      
+      // Delete notifications for this user
+      const { error: notificationsError } = await client
+        .from('notifications')
+        .delete()
+        .eq('user_address', normalizedAddress);
+      
+      if (notificationsError) {
+        console.error('❌ Failed to delete notifications:', notificationsError);
+        throw new Error('Failed to delete user notifications');
+      }
+      
+      // Delete supports where user is either sender or receiver
+      const { error: supportsError } = await client
+        .from('supports')
+        .delete()
+        .or(`from_address.eq.${normalizedAddress},to_address.eq.${normalizedAddress}`);
+      
+      if (supportsError) {
+        console.error('❌ Failed to delete supports:', supportsError);
+        throw new Error('Failed to delete user support records');
+      }
+      
+      // Delete posts
+      const { error: postsError } = await client
+        .from('posts')
+        .delete()
+        .eq('builder_address', normalizedAddress);
+      
+      if (postsError) {
+        console.error('❌ Failed to delete posts:', postsError);
+        throw new Error('Failed to delete user posts');
+      }
+      
+      console.log('🗂️ Deleting user profile...');
+      
+      // Step 4: Delete the profile (main user record)
+      const { error: profileError } = await client
+        .from('profiles')
+        .delete()
+        .eq('wallet_address', normalizedAddress);
+      
+      if (profileError) {
+        console.error('❌ Failed to delete profile:', profileError);
+        throw new Error('Failed to delete user profile');
+      }
+      
+      console.log('🔍 Verifying deletion...');
+      
+      // Step 5: Wait a moment and verify deletion was successful
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check multiple tables to ensure complete deletion
+      const { data: remainingProfile } = await client
         .from('profiles')
         .select('wallet_address')
         .eq('wallet_address', normalizedAddress)
         .single();
       
-      if (remainingUser) {
-        throw new Error('User still exists in database after deletion attempt');
+      const { data: remainingProjects } = await client
+        .from('projects')
+        .select('id')
+        .eq('builder_address', normalizedAddress);
+      
+      if (remainingProfile) {
+        throw new Error('User profile still exists in database after deletion attempt');
       }
       
-      console.log('✅ Admin user deletion completed successfully - VERIFIED');
+      if (remainingProjects && remainingProjects.length > 0) {
+        throw new Error('User projects still exist in database after deletion attempt');
+      }
+      
+      console.log('✅ User successfully deleted from database - VERIFIED');
       alert('User deleted successfully');
       fetchUsers(); // Refresh user list
+      
     } catch (error) {
       console.error('❌ Admin delete failed:', error);
       alert(`Failed to delete user: ${error instanceof Error ? error.message : 'Unknown error'}`);

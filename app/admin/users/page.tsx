@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
 import { supabaseClient } from '@/lib/supabase-client';
 import type { Profile } from '@/lib/supabase';
 import { formatAddress } from '@/lib/utils';
@@ -9,14 +10,17 @@ import { Search, CheckCircle2, XCircle, Ban, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminUsersPage() {
+  const { ready, authenticated, user } = usePrivy();
   const [users, setUsers] = useState<(Profile & { total_raised?: number })[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<(Profile & { total_raised?: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const adminWallet = user?.wallet?.address?.toLowerCase() || '';
+
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [ready, authenticated, adminWallet]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -35,6 +39,11 @@ export default function AdminUsersPage() {
   }, [searchQuery, users]);
 
   const fetchUsers = async () => {
+    if (!ready || !authenticated || !adminWallet) {
+      setLoading(false);
+      return;
+    }
+
     const client = supabaseClient;
     if (!client) return;
 
@@ -106,8 +115,10 @@ export default function AdminUsersPage() {
   const handleAdminDelete = async (walletAddress: string) => {
     if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
     
-    const client = supabaseClient;
-    if (!client) return;
+    if (!authenticated || !adminWallet) {
+      alert('You must be authenticated to delete users');
+      return;
+    }
     
     // Show loading state immediately
     const deleteButton = document.querySelector(`[data-delete-address="${walletAddress}"]`) as HTMLButtonElement;
@@ -119,42 +130,30 @@ export default function AdminUsersPage() {
     try {
       const normalizedAddress = walletAddress.toLowerCase();
       
-      console.log('🗑️ Admin deleting user with CASCADE:', normalizedAddress);
+      console.log('🗑️ Admin deleting user via API:', { 
+        targetUser: normalizedAddress, 
+        admin: adminWallet 
+      });
       
-      // With CASCADE DELETE, we only need to delete from the main profiles table
-      // All related records will be automatically deleted by the database
+      // Call the secure API route
+      const response = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: normalizedAddress,
+          adminWallet: adminWallet
+        })
+      });
       
-      console.log('🗂️ Deleting user profile (CASCADE will handle related data)...');
+      const data = await response.json();
       
-      // Delete from profiles table - CASCADE will automatically delete:
-      // - projects (and their milestones/updates)
-      // - posts (and their likes/comments)
-      // - supports (both sent and received)
-      // - notifications
-      const { error: profileError } = await client
-        .from('profiles')
-        .delete()
-        .eq('wallet_address', normalizedAddress);
-      
-      if (profileError) {
-        console.error('❌ Failed to delete profile:', profileError);
-        throw new Error(`Failed to delete user profile: ${profileError.message}`);
+      if (!response.ok) {
+        throw new Error(data.error || 'Delete request failed');
       }
       
-      console.log('🔍 Verifying deletion...');
-      
-      // Verify deletion was successful
-      const { data: remainingProfile } = await client
-        .from('profiles')
-        .select('wallet_address')
-        .eq('wallet_address', normalizedAddress)
-        .maybeSingle(); // Use maybeSingle to avoid error if not found
-      
-      if (remainingProfile) {
-        throw new Error('User profile still exists in database after deletion attempt');
-      }
-      
-      console.log('✅ User successfully deleted via CASCADE - VERIFIED');
+      console.log('✅ User successfully deleted via API - VERIFIED');
       alert('User deleted successfully');
       fetchUsers(); // Refresh user list
       
@@ -174,7 +173,24 @@ export default function AdminUsersPage() {
     return (
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-12">
         <div className="mx-auto max-w-7xl">
-          <p className="text-zinc-600 dark:text-zinc-400">Loading users...</p>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            {!ready ? 'Initializing...' : !authenticated ? 'Please connect your wallet' : 'Loading users...'}
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!authenticated || !adminWallet) {
+    return (
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-foreground sm:text-4xl mb-4">Access Denied</h1>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              You must be authenticated to access the admin panel.
+            </p>
+          </div>
         </div>
       </main>
     );

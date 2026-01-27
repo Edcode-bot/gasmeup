@@ -325,61 +325,42 @@ export default function ProfilePage() {
     try {
       const walletAddress = user.wallet.address.toLowerCase();
       
-      console.log('🗑️ Starting account deletion for:', walletAddress);
+      console.log('🗑️ Starting account deletion with CASCADE for:', walletAddress);
       
-      // Delete in order of dependencies to avoid foreign key constraints
-      const deletionResults = await Promise.allSettled([
-        // Delete post likes first (depends on posts)
-        supabaseClient
-          .from('post_likes')
-          .delete()
-          .eq('user_address', walletAddress),
-        
-        // Delete post comments (depends on posts)
-        supabaseClient
-          .from('post_comments')
-          .delete()
-          .eq('user_address', walletAddress),
-        
-        // Delete notifications for this user
-        supabaseClient
-          .from('notifications')
-          .delete()
-          .eq('user_address', walletAddress),
-        
-        // Delete supports where user is either sender or receiver
-        supabaseClient
-          .from('supports')
-          .delete()
-          .or(`from_address.eq.${walletAddress},to_address.eq.${walletAddress}`),
-        
-        // Delete posts (builder_address)
-        supabaseClient
-          .from('posts')
-          .delete()
-          .eq('builder_address', walletAddress),
-        
-        // Delete projects (builder_address)
-        supabaseClient
-          .from('projects')
-          .delete()
-          .eq('builder_address', walletAddress),
-        
-        // Finally, delete the profile
-        supabaseClient
-          .from('profiles')
-          .delete()
-          .eq('wallet_address', walletAddress)
-      ]);
+      // With CASCADE DELETE, we only need to delete from the main profiles table
+      // All related records will be automatically deleted by the database
       
-      // Check if any deletions failed
-      const failedDeletions = deletionResults.filter(result => result.status === 'rejected');
-      if (failedDeletions.length > 0) {
-        console.error('Some deletions failed:', failedDeletions);
-        throw new Error('Some data could not be deleted. Please try again.');
+      console.log('🗂️ Deleting user profile (CASCADE will handle all related data)...');
+      
+      // Delete from profiles table - CASCADE will automatically delete:
+      // - projects (and their milestones/updates)
+      // - posts (and their likes/comments)
+      // - supports (both sent and received)
+      // - notifications
+      const { error: profileError } = await supabaseClient
+        .from('profiles')
+        .delete()
+        .eq('wallet_address', walletAddress);
+      
+      if (profileError) {
+        console.error('❌ Failed to delete profile:', profileError);
+        throw new Error(`Failed to delete account: ${profileError.message}`);
       }
       
-      console.log('✅ Account deletion completed successfully');
+      console.log('🔍 Verifying deletion...');
+      
+      // Verify deletion was successful
+      const { data: remainingProfile } = await supabaseClient
+        .from('profiles')
+        .select('wallet_address')
+        .eq('wallet_address', walletAddress)
+        .maybeSingle(); // Use maybeSingle to avoid error if not found
+      
+      if (remainingProfile) {
+        throw new Error('Account still exists in database after deletion attempt');
+      }
+      
+      console.log('✅ Account successfully deleted via CASCADE - VERIFIED');
       
       // Log out user
       await logout();
@@ -389,7 +370,7 @@ export default function ProfilePage() {
       
     } catch (error) {
       console.error('❌ Delete failed:', error);
-      alert('Failed to delete account. Please try again.');
+      alert(`Failed to delete account: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsDeleting(false);
     }

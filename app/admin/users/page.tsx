@@ -109,7 +109,7 @@ export default function AdminUsersPage() {
     const client = supabaseClient;
     if (!client) return;
     
-    // Show loading state
+    // Show loading state immediately
     const deleteButton = document.querySelector(`[data-delete-address="${walletAddress}"]`) as HTMLButtonElement;
     if (deleteButton) {
       deleteButton.disabled = true;
@@ -119,123 +119,18 @@ export default function AdminUsersPage() {
     try {
       const normalizedAddress = walletAddress.toLowerCase();
       
-      console.log('🗑️ Admin deleting user:', normalizedAddress);
+      console.log('🗑️ Admin deleting user with CASCADE:', normalizedAddress);
       
-      // Step 1: Get all projects for this user to delete related data first
-      const { data: userProjects, error: projectError } = await client
-        .from('projects')
-        .select('id')
-        .eq('builder_address', normalizedAddress);
+      // With CASCADE DELETE, we only need to delete from the main profiles table
+      // All related records will be automatically deleted by the database
       
-      if (projectError) {
-        console.error('❌ Failed to get user projects:', projectError);
-        throw new Error('Failed to retrieve user projects for deletion');
-      }
+      console.log('🗂️ Deleting user profile (CASCADE will handle related data)...');
       
-      const projectIds = userProjects?.map(p => p.id) || [];
-      console.log('📋 Found projects to delete:', projectIds.length);
-      
-      // Step 2: Delete in proper order to avoid foreign key constraints
-      
-      // Delete project-related data first
-      if (projectIds.length > 0) {
-        console.log('🗂️ Deleting project-related data...');
-        
-        // Delete milestones for user's projects
-        const { error: milestonesError } = await client
-          .from('milestones')
-          .delete()
-          .in('project_id', projectIds);
-        
-        if (milestonesError) {
-          console.error('❌ Failed to delete milestones:', milestonesError);
-          throw new Error('Failed to delete project milestones');
-        }
-        
-        // Delete project updates for user's projects
-        const { error: updatesError } = await client
-          .from('project_updates')
-          .delete()
-          .in('project_id', projectIds);
-        
-        if (updatesError) {
-          console.error('❌ Failed to delete project updates:', updatesError);
-          throw new Error('Failed to delete project updates');
-        }
-        
-        // Delete the projects themselves
-        const { error: projectsDeleteError } = await client
-          .from('projects')
-          .delete()
-          .eq('builder_address', normalizedAddress);
-        
-        if (projectsDeleteError) {
-          console.error('❌ Failed to delete projects:', projectsDeleteError);
-          throw new Error('Failed to delete user projects');
-        }
-      }
-      
-      console.log('🗂️ Deleting user-related data...');
-      
-      // Step 3: Delete user-related data
-      // Delete post likes first
-      const { error: likesError } = await client
-        .from('post_likes')
-        .delete()
-        .eq('user_address', normalizedAddress);
-      
-      if (likesError) {
-        console.error('❌ Failed to delete post likes:', likesError);
-        throw new Error('Failed to delete user post likes');
-      }
-      
-      // Delete post comments
-      const { error: commentsError } = await client
-        .from('post_comments')
-        .delete()
-        .eq('user_address', normalizedAddress);
-      
-      if (commentsError) {
-        console.error('❌ Failed to delete post comments:', commentsError);
-        throw new Error('Failed to delete user post comments');
-      }
-      
-      // Delete notifications for this user
-      const { error: notificationsError } = await client
-        .from('notifications')
-        .delete()
-        .eq('user_address', normalizedAddress);
-      
-      if (notificationsError) {
-        console.error('❌ Failed to delete notifications:', notificationsError);
-        throw new Error('Failed to delete user notifications');
-      }
-      
-      // Delete supports where user is either sender or receiver
-      const { error: supportsError } = await client
-        .from('supports')
-        .delete()
-        .or(`from_address.eq.${normalizedAddress},to_address.eq.${normalizedAddress}`);
-      
-      if (supportsError) {
-        console.error('❌ Failed to delete supports:', supportsError);
-        throw new Error('Failed to delete user support records');
-      }
-      
-      // Delete posts
-      const { error: postsError } = await client
-        .from('posts')
-        .delete()
-        .eq('builder_address', normalizedAddress);
-      
-      if (postsError) {
-        console.error('❌ Failed to delete posts:', postsError);
-        throw new Error('Failed to delete user posts');
-      }
-      
-      console.log('🗂️ Deleting user profile...');
-      
-      // Step 4: Delete the profile (main user record)
+      // Delete from profiles table - CASCADE will automatically delete:
+      // - projects (and their milestones/updates)
+      // - posts (and their likes/comments)
+      // - supports (both sent and received)
+      // - notifications
       const { error: profileError } = await client
         .from('profiles')
         .delete()
@@ -243,35 +138,23 @@ export default function AdminUsersPage() {
       
       if (profileError) {
         console.error('❌ Failed to delete profile:', profileError);
-        throw new Error('Failed to delete user profile');
+        throw new Error(`Failed to delete user profile: ${profileError.message}`);
       }
       
       console.log('🔍 Verifying deletion...');
       
-      // Step 5: Wait a moment and verify deletion was successful
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check multiple tables to ensure complete deletion
+      // Verify deletion was successful
       const { data: remainingProfile } = await client
         .from('profiles')
         .select('wallet_address')
         .eq('wallet_address', normalizedAddress)
-        .single();
-      
-      const { data: remainingProjects } = await client
-        .from('projects')
-        .select('id')
-        .eq('builder_address', normalizedAddress);
+        .maybeSingle(); // Use maybeSingle to avoid error if not found
       
       if (remainingProfile) {
         throw new Error('User profile still exists in database after deletion attempt');
       }
       
-      if (remainingProjects && remainingProjects.length > 0) {
-        throw new Error('User projects still exist in database after deletion attempt');
-      }
-      
-      console.log('✅ User successfully deleted from database - VERIFIED');
+      console.log('✅ User successfully deleted via CASCADE - VERIFIED');
       alert('User deleted successfully');
       fetchUsers(); // Refresh user list
       

@@ -11,7 +11,7 @@ FOR DELETE
 TO authenticated
 USING (wallet_address = auth.jwt() ->> 'wallet_address');
 
--- Add DELETE policy for service role (admin can delete any profile)
+-- Add DELETE policy for servaaice role (admin can delete any profile)
 CREATE POLICY "Service role can delete any profile"
 ON public.profiles
 FOR DELETE

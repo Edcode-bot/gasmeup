@@ -8,17 +8,13 @@ interface UsernamePageProps {
 export default async function UsernamePage({ params }: UsernamePageProps) {
   const { username } = await params;
   
-  console.log('🔍 Username route accessed:', { username });
-  
   // Check if username exists
   if (!username || typeof username !== 'string') {
-    console.log('❌ Invalid username parameter');
     notFound();
   }
   
   // Remove @ if present and clean up
   const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
-  console.log('🧹 Cleaned username:', cleanUsername);
   
   // Look up username in profiles table (case-insensitive)
   const { data: profile, error } = await supabase
@@ -27,23 +23,15 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     .ilike('username', cleanUsername)
     .single();
 
-  console.log('👤 Profile lookup result:', { profile, error });
-
   if (error) {
-    console.log('❌ Database error:', error);
-    
     // If it's a "not found" error, show custom 404
     if (error.code === 'PGRST116') {
-      console.log('❌ Profile not found for username:', cleanUsername);
-      
       // Try exact match as fallback
       const { data: exactProfile, error: exactError } = await supabase
         .from('profiles')
         .select('wallet_address, username')
         .eq('username', cleanUsername)
         .single();
-      
-      console.log('🔄 Exact match fallback result:', { exactProfile, exactError });
       
       if (exactError || !exactProfile) {
         // Create a custom 404 page for username not found
@@ -70,7 +58,6 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
         );
       }
       
-      console.log('✅ Redirecting to builder address (exact match):', exactProfile.wallet_address);
       redirect(`/builder/${exactProfile.wallet_address}`);
     }
     
@@ -79,8 +66,6 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
   }
 
   if (!profile) {
-    console.log('❌ Profile not found for username:', cleanUsername);
-    
     // Create a custom 404 page for username not found
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-4">
@@ -105,8 +90,6 @@ export default async function UsernamePage({ params }: UsernamePageProps) {
     );
   }
 
-  console.log('✅ Redirecting to builder address:', profile.wallet_address);
-  
   // Redirect to the builder address page
   redirect(`/builder/${profile.wallet_address}`);
 }

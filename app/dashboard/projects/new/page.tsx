@@ -78,17 +78,16 @@ export default function NewProjectPage() {
       const client = supabaseClient;
       if (!client) throw new Error('Supabase client not initialized');
       
-      // Check if user is authenticated
+      // Check if user is authenticated using Privy (not Supabase session)
       console.log('🔐 Checking authentication status...');
-      const { data: { session }, error: sessionError } = await client.auth.getSession();
-      
-      console.log('🔐 Session check:', {
-        hasSession: !!session,
-        sessionError: sessionError?.message,
-        userId: session?.user?.id
+      console.log('🔐 Privy auth check:', {
+        ready,
+        authenticated,
+        hasUser: !!user,
+        walletAddress: user?.wallet?.address
       });
       
-      if (!session) {
+      if (!ready || !authenticated || !user) {
         throw new Error('You must be logged in to upload images');
       }
       

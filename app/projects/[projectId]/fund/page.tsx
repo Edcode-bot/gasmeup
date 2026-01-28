@@ -34,12 +34,8 @@ import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 const AMOUNT_PRESETS = [5, 10, 25, 50];
 const SUPPORTED_CHAINS = [
-  { id: 137, name: 'Polygon', currency: 'MATIC' },
   { id: 8453, name: 'Base', currency: 'ETH' },
-  { id: 42161, name: 'Arbitrum', currency: 'ETH' },
   { id: 42220, name: 'Celo', currency: 'CELO' },
-  { id: 1, name: 'Ethereum', currency: 'ETH' },
-  { id: 10, name: 'Optimism', currency: 'ETH' },
 ] as const;
 
 type TransactionState = 'idle' | 'loading' | 'success' | 'error';
@@ -54,7 +50,7 @@ export default function ProjectFundPage() {
   const [amount, setAmount] = useState<string>('');
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [message, setMessage] = useState<string>('');
-  const [selectedChainId, setSelectedChainId] = useState<SupportedChainId>(8453);
+  const [selectedChainId, setSelectedChainId] = useState<SupportedChainId>(8453); // Base as default
   const [txState, setTxState] = useState<TransactionState>('idle');
   const [txHash, setTxHash] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -413,7 +409,7 @@ export default function ProjectFundPage() {
                 <label className="mb-2 block text-sm font-medium text-foreground">
                   Select Chain
                 </label>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3">
                   {SUPPORTED_CHAINS.map((chain) => (
                     <button
                       key={chain.id}

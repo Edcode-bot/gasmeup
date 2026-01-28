@@ -59,11 +59,7 @@ export default async function Home() {
   if (allSupports && allSupports.length > 0) {
     // Map chain IDs to CoinGecko token IDs
     const chainTokenMap: Record<number, string> = {
-      1: 'ethereum', // Ethereum
-      10: 'optimism', // Optimism
-      137: 'matic-network', // Polygon
       8453: 'base', // Base
-      42161: 'arbitrum', // Arbitrum
       42220: 'celo', // Celo
     };
 
@@ -122,7 +118,7 @@ export default async function Home() {
     {
       question: 'What chains are supported?',
       answer:
-        'We support 6 major blockchains: Ethereum, Polygon, Base, Arbitrum, Celo, and Optimism. You can receive support on any of these chains, and supporters can choose their preferred chain when sending contributions.',
+        'We support 2 major blockchains: Base and Celo. You can receive support on both chains, and supporters can choose their preferred chain when sending contributions.',
     },
     {
       question: 'What are the fees?',

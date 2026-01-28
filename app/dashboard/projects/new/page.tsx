@@ -78,28 +78,67 @@ export default function NewProjectPage() {
       const client = supabaseClient;
       if (!client) throw new Error('Supabase client not initialized');
       
+      // Check if user is authenticated
+      console.log('🔐 Checking authentication status...');
+      const { data: { session }, error: sessionError } = await client.auth.getSession();
+      
+      console.log('🔐 Session check:', {
+        hasSession: !!session,
+        sessionError: sessionError?.message,
+        userId: session?.user?.id
+      });
+      
+      if (!session) {
+        throw new Error('You must be logged in to upload images');
+      }
+      
       // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = fileName; // Just the filename, not the full path
       
-      const { error: uploadError } = await client.storage
-        .from('project-images')
-        .upload(filePath, file);
+      console.log('📤 Attempting upload:', {
+        bucket: 'project-images',
+        path: filePath,
+        size: file.size,
+        type: file.type,
+        fileName: fileName
+      });
       
-      if (uploadError) throw uploadError;
+      const { data: uploadData, error: uploadError } = await client.storage
+        .from('project-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      
+      console.log('📊 Upload result:', {
+        success: !!uploadData,
+        error: uploadError?.message,
+        errorDetails: uploadError,
+        uploadData: uploadData
+      });
+      
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
       
       // Get public URL
-      const { data } = client.storage
+      const { data: urlData } = client.storage
         .from('project-images')
         .getPublicUrl(filePath);
       
-      setUploadedImage(data.publicUrl);
+      console.log('🔗 Public URL generated:', {
+        url: urlData.publicUrl,
+        path: filePath
+      });
+      
+      setUploadedImage(urlData.publicUrl);
       setImageUrl(''); // Clear URL input when using upload
       setError('');
       
     } catch (error: any) {
-      console.error('Upload error:', error);
+      console.error('❌ Upload error:', error);
       setError(`Failed to upload image: ${error.message}`);
     } finally {
       setIsUploading(false);

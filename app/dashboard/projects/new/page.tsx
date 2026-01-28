@@ -26,9 +26,6 @@ export default function NewProjectPage() {
   const [fundsUsageInfra, setFundsUsageInfra] = useState('');
   const [fundsUsageOps, setFundsUsageOps] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [uploadedImage, setUploadedImage] = useState('');
-  const [imageInputMethod, setImageInputMethod] = useState<'url' | 'upload'>('url');
-  const [isUploading, setIsUploading] = useState(false);
   const [liveUrl, setLiveUrl] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
@@ -53,99 +50,6 @@ export default function NewProjectPage() {
     } catch {
       return false;
     }
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
-      return;
-    }
-    
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be smaller than 5MB');
-      return;
-    }
-    
-    setIsUploading(true);
-    setError('');
-    
-    try {
-      const client = supabaseClient;
-      if (!client) throw new Error('Supabase client not initialized');
-      
-      // Check if user is authenticated using Privy (not Supabase session)
-      console.log('🔐 Checking authentication status...');
-      console.log('🔐 Privy auth check:', {
-        ready,
-        authenticated,
-        hasUser: !!user,
-        walletAddress: user?.wallet?.address
-      });
-      
-      if (!ready || !authenticated || !user) {
-        throw new Error('You must be logged in to upload images');
-      }
-      
-      // Upload to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = fileName; // Just the filename, not the full path
-      
-      console.log('📤 Attempting upload:', {
-        bucket: 'project-images',
-        path: filePath,
-        size: file.size,
-        type: file.type,
-        fileName: fileName
-      });
-      
-      const { data: uploadData, error: uploadError } = await client.storage
-        .from('project-images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-      
-      console.log('📊 Upload result:', {
-        success: !!uploadData,
-        error: uploadError?.message,
-        errorDetails: uploadError,
-        uploadData: uploadData
-      });
-      
-      if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
-      
-      // Get public URL
-      const { data: urlData } = client.storage
-        .from('project-images')
-        .getPublicUrl(filePath);
-      
-      console.log('🔗 Public URL generated:', {
-        url: urlData.publicUrl,
-        path: filePath
-      });
-      
-      setUploadedImage(urlData.publicUrl);
-      setImageUrl(''); // Clear URL input when using upload
-      setError('');
-      
-    } catch (error: any) {
-      console.error('❌ Upload error:', error);
-      setError(`Failed to upload image: ${error.message}`);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const getFinalImageUrl = (): string => {
-    return imageInputMethod === 'url' ? imageUrl : uploadedImage;
   };
 
   const handleCreate = async () => {
@@ -189,13 +93,12 @@ export default function NewProjectPage() {
       return;
     }
 
-    const finalImageUrl = getFinalImageUrl();
-    if (!finalImageUrl.trim()) {
+    if (!imageUrl.trim()) {
       setError('Project image is required');
       return;
     }
 
-    if (imageInputMethod === 'url' && !validateUrl(finalImageUrl)) {
+    if (!validateUrl(imageUrl)) {
       setError('Invalid image URL');
       return;
     }
@@ -230,7 +133,7 @@ export default function NewProjectPage() {
           funds_usage_dev: fundsUsageDev.trim() || null,
           funds_usage_infra: fundsUsageInfra.trim() || null,
           funds_usage_ops: fundsUsageOps.trim() || null,
-          image_url: finalImageUrl.trim(),
+          image_url: imageUrl.trim(),
           live_url: liveUrl.trim() || null,
           github_url: githubUrl.trim() || null,
           goal_amount: goalAmount ? parseFloat(goalAmount) : null,
@@ -434,73 +337,24 @@ export default function NewProjectPage() {
 
             {/* Project Image */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-foreground">
-                Project Image <span className="text-red-500">*</span>
+              <label htmlFor="imageUrl" className="mb-2 block text-sm font-medium text-foreground">
+                Project Image URL <span className="text-red-500">*</span>
               </label>
-              
-              {/* Tab buttons to switch between URL and Upload */}
-              <div className="flex gap-2 mb-4">
-                <button 
-                  type="button"
-                  onClick={() => setImageInputMethod('url')}
-                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                    imageInputMethod === 'url' 
-                      ? 'bg-[#FFBF00] text-black' 
-                      : 'bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300'
-                  }`}
-                >
-                  Image URL
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => setImageInputMethod('upload')}
-                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                    imageInputMethod === 'upload' 
-                      ? 'bg-[#FFBF00] text-black' 
-                      : 'bg-zinc-200 text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300'
-                  }`}
-                >
-                  Upload File
-                </button>
-              </div>
-              
-              {/* Show URL input or file upload based on selection */}
-              {imageInputMethod === 'url' ? (
-                <div>
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => {
-                      setImageUrl(e.target.value);
-                      setUploadedImage(''); // Clear uploaded image when switching to URL
-                    }}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
-                  />
-                </div>
-              ) : (
-                <div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={isUploading}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[#FFBF00] file:text-black hover:file:bg-[#FFD700] focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900"
-                  />
-                  {isUploading && (
-                    <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      Uploading image...
-                    </p>
-                  )}
-                </div>
-              )}
+              <input
+                id="imageUrl"
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
+              />
               
               {/* Preview */}
-              {(getFinalImageUrl()) && (
+              {imageUrl && (
                 <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <div className="relative h-64 w-full">
                     <Image
-                      src={getFinalImageUrl()}
+                      src={imageUrl}
                       alt="Project image preview"
                       fill
                       className="object-cover"

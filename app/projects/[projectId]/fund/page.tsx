@@ -29,7 +29,6 @@ import {
   type SupportedChainId,
 } from '@/lib/blockchain';
 import { base, celo } from 'viem/chains';
-import Image from 'next/image';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 const AMOUNT_PRESETS = [5, 10, 25, 50];
@@ -298,12 +297,10 @@ export default function ProjectFundPage() {
           <div className="mb-6 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:mb-8 sm:p-6">
             <div className="mb-4">
               <div className="relative h-32 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800 sm:h-48">
-                <Image
+                <img
                   src={project.image_url}
                   alt={project.title}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 512px"
+                  className="h-full w-full object-cover"
                 />
               </div>
             </div>

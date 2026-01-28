@@ -18,7 +18,6 @@ import { formatAddress } from '@/lib/utils';
 import { supabaseClient } from '@/lib/supabase-client';
 import { usePrivy } from '@privy-io/react-auth';
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Project, Profile, Support } from '@/lib/supabase';
 import { ExternalLink, Github, ArrowLeft, Users, DollarSign, Target } from 'lucide-react';
 
@@ -179,12 +178,10 @@ export default function SingleProjectPage() {
             <div className="lg:col-span-2">
               {/* Project Image */}
               <div className="relative mb-6 h-64 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800 sm:h-96">
-                <Image
+                <img
                   src={project.image_url}
                   alt={project.title}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  className="h-full w-full object-cover"
                 />
               </div>
 

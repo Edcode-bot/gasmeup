@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { formatAddress } from '@/lib/utils';
 import type { Project, Profile } from '@/lib/supabase';
 import { Calendar, Users, Target } from 'lucide-react';
@@ -36,12 +35,10 @@ export function ProjectCard({
       className="group flex flex-col rounded-lg border border-zinc-200 bg-white transition-all hover:border-[#FFBF00] hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
     >
       <div className="relative h-48 w-full overflow-hidden rounded-t-lg bg-zinc-100 dark:bg-zinc-800 sm:h-56">
-        <Image
+        <img
           src={project.image_url}
           alt={project.title}
-          fill
-          className="object-cover transition-transform group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="h-full w-full object-cover transition-transform group-hover:scale-105"
         />
         <div className="absolute right-2 top-2">
           <span

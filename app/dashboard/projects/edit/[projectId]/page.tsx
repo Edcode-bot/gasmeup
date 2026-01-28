@@ -6,7 +6,6 @@ import { usePrivy } from '@privy-io/react-auth';
 import { DashboardNavbar } from '@/components/dashboard-navbar';
 import { supabaseClient } from '@/lib/supabase-client';
 import type { Project } from '@/lib/supabase';
-import Image from 'next/image';
 import { ArrowLeft, Save, Trash2, DollarSign, Users } from 'lucide-react';
 import Link from 'next/link';
 
@@ -30,6 +29,7 @@ export default function EditProjectPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [stats, setStats] = useState({ raised: 0, supporters: 0 });
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   const walletAddress = user?.wallet?.address?.toLowerCase();
 
@@ -96,12 +96,8 @@ export default function EditProjectPage() {
 
   const validateUrl = (url: string): boolean => {
     if (!url.trim()) return true;
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
+    // Accept any URL that starts with http:// or https://
+    return url.startsWith('http://') || url.startsWith('https://');
   };
 
   const handleUpdate = async () => {
@@ -349,23 +345,31 @@ export default function EditProjectPage() {
                 id="imageUrl"
                 type="url"
                 value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
+                onChange={(e) => {
+                  setImageUrl(e.target.value);
+                  setImageLoadError(false);
+                }}
                 placeholder="https://example.com/image.jpg"
                 className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400"
               />
               
               {/* Preview */}
-              {imageUrl && (
-                <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-                  <div className="relative h-64 w-full">
-                    <Image
+              {imageUrl && validateUrl(imageUrl) && (
+                <div className="mt-4">
+                  <div className="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+                    <img
                       src={imageUrl}
                       alt="Project image preview"
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 768px"
+                      className="h-64 w-full object-cover"
+                      onError={() => setImageLoadError(true)}
+                      onLoad={() => setImageLoadError(false)}
                     />
                   </div>
+                  {imageLoadError && (
+                    <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+                      ⚠️ Image failed to load. Please check the URL is correct and publicly accessible.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

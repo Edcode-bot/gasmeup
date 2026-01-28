@@ -23,6 +23,7 @@ export default function EditPostPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   const walletAddress = user?.wallet?.address?.toLowerCase();
 
@@ -76,12 +77,8 @@ export default function EditPostPage() {
 
   const validateUrl = (url: string): boolean => {
     if (!url.trim()) return true;
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
+    // Accept any URL that starts with http:// or https://
+    return url.startsWith('http://') || url.startsWith('https://');
   };
 
   const handleUpdate = async () => {
@@ -282,7 +279,10 @@ export default function EditPostPage() {
                 <input
                   type="url"
                   value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value);
+                    setImageLoadError(false);
+                  }}
                   placeholder="https://example.com/image.jpg"
                   className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-foreground placeholder:text-zinc-400 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder:text-zinc-500"
                 />
@@ -293,10 +293,14 @@ export default function EditPostPage() {
                       src={imageUrl}
                       alt="Preview"
                       className="max-h-64 w-full rounded-lg object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
+                      onError={() => setImageLoadError(true)}
+                      onLoad={() => setImageLoadError(false)}
                     />
+                    {imageLoadError && (
+                      <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+                        ⚠️ Image failed to load. Please check the URL is correct and publicly accessible.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -309,9 +313,6 @@ export default function EditPostPage() {
                   src={imageUrl}
                   alt={title}
                   className="mb-4 w-full rounded-lg object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
                 />
               )}
               <div className="prose prose-sm dark:prose-invert max-w-none">

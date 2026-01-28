@@ -4,7 +4,6 @@ import { Avatar } from '@/components/avatar';
 import { getTopBuilders, getTopSupporters, getTopProjects, getSupporterBadge } from '@/lib/leaderboard';
 import { formatAddress } from '@/lib/utils';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default async function LeaderboardPage() {
   const [topBuilders, topSupporters, topProjects] = await Promise.all([
@@ -208,12 +207,10 @@ export default async function LeaderboardPage() {
                       className="group rounded-lg border border-zinc-200 bg-white p-4 transition-shadow hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900 sm:p-6"
                     >
                       <div className="relative mb-4 h-32 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                        <Image
+                        <img
                           src={project.image_url}
                           alt={project.title}
-                          fill
-                          className="object-cover transition-transform group-hover:scale-105"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
                         />
                       </div>
                       <div className="mb-2 flex items-center justify-between">

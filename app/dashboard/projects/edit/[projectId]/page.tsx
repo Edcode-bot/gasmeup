@@ -133,7 +133,7 @@ export default function EditProjectPage() {
       // Upload to Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `project-images/${fileName}`;
+      const filePath = fileName; // Just the filename, not the full path
       
       const { error: uploadError } = await client.storage
         .from('project-images')

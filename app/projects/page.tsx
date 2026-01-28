@@ -17,7 +17,7 @@ export default function ProjectsPage() {
   const [filteredProjects, setFilteredProjects] = useState<(Project & { builder?: Profile | null })[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('active');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'idea' | 'building' | 'live' | 'active' | 'completed' | 'archived'>('all');
   const [progressFilter, setProgressFilter] = useState<ProgressFilter>('all');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [page, setPage] = useState(1);
@@ -39,12 +39,17 @@ export default function ProjectsPage() {
     }
 
     try {
+      console.log('🔍 Fetching projects from database...');
+      
       const { data: projectsData, error } = await client
         .from('projects')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      console.log('📊 Raw projects data:', projectsData?.length || 0, 'projects');
+      console.log('📋 Project statuses:', projectsData?.map(p => p.status) || []);
 
       // Fetch builder profiles
       const builderAddresses = [...new Set(projectsData?.map((p) => p.builder_address) || [])];
@@ -62,9 +67,10 @@ export default function ProjectsPage() {
         builder: profileMap.get(project.builder_address.toLowerCase()) || null,
       }));
 
+      console.log('✅ Projects with builder data:', projectsWithBuilder.length);
       setProjects(projectsWithBuilder);
     } catch (err) {
-      console.error('Failed to fetch projects:', err);
+      console.error('❌ Failed to fetch projects:', err);
       setProjects([]);
     } finally {
       setLoading(false);
@@ -77,6 +83,10 @@ export default function ProjectsPage() {
   };
 
   const filterAndSortProjects = () => {
+    console.log('🔄 Filtering and sorting projects...');
+    console.log('📊 Input projects:', projects.length);
+    console.log('🎛️ Current filters:', { statusFilter, progressFilter, sortBy, searchQuery });
+    
     let filtered = [...projects];
 
     // Search filter
@@ -135,6 +145,7 @@ export default function ProjectsPage() {
         break;
     }
 
+    console.log('✅ Filtered projects:', filtered.length);
     setFilteredProjects(filtered);
     setPage(1);
   };
@@ -182,8 +193,12 @@ export default function ProjectsPage() {
                   className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-foreground focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900"
                 >
                   <option value="all">All Status</option>
+                  <option value="idea">Idea</option>
+                  <option value="building">Building</option>
+                  <option value="live">Live</option>
                   <option value="active">Active</option>
                   <option value="completed">Completed</option>
+                  <option value="archived">Archived</option>
                 </select>
               </div>
 
@@ -229,11 +244,29 @@ export default function ProjectsPage() {
             </div>
           ) : paginatedProjects.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-zinc-600 dark:text-zinc-400">
+              <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-4">
                 {searchQuery || statusFilter !== 'all' || progressFilter !== 'all'
                   ? 'No projects found matching your filters.'
                   : 'No projects yet.'}
               </p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+                {searchQuery || statusFilter !== 'all' || progressFilter !== 'all'
+                  ? 'Try adjusting your search terms or filters to see more projects.'
+                  : 'Be the first to create a project and get funded!'}
+              </p>
+              {(searchQuery || statusFilter !== 'all' || progressFilter !== 'all') && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setStatusFilter('all');
+                    setProgressFilter('all');
+                    setSortBy('recent');
+                  }}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFBF00] text-black rounded-lg hover:bg-[#FFD700] transition-colors font-medium"
+                >
+                  Clear All Filters
+                </button>
+              )}
             </div>
           ) : (
             <>

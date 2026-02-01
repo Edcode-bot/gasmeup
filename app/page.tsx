@@ -6,9 +6,13 @@ import { FAQAccordion } from '@/components/faq-accordion';
 import { AnimatedCounter } from '@/components/animated-counter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { StatCard } from '@/components/ui/stat-card';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SectionCard } from '@/components/layout/section-card';
+import { UI_TOKENS, COMMON_COMBINATIONS } from '@/lib/ui/tokens';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { Wallet, Search, Send, Shield, Zap, Eye, Link2, ArrowRight, Github, Users, DollarSign, Target } from 'lucide-react';
+import { Wallet, Search, Send, Shield, Zap, Eye, Link2, ArrowRight, Github, Users, DollarSign, Target, TrendingUp, Calendar } from 'lucide-react';
 
 export default async function Home() {
   // Fetch featured builders (top 6 by total raised)
@@ -328,39 +332,33 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Featured Builders */}
-        <section className="py-16 sm:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        {/* Platform Stats */}
+        <section className={`py-16 sm:py-24 ${UI_TOKENS.background.section}`}>
+          <div className={`mx-auto ${UI_TOKENS.container.xl} ${UI_TOKENS.padding.sm} sm:px-6`}>
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground sm:text-4xl">Platform Stats</h2>
+              <h2 className={UI_TOKENS.typography.h2}>Platform Stats</h2>
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="text-center">
-                <p className="mb-2 text-5xl font-bold text-[#FFBF00] sm:text-6xl">
-                  <AnimatedCounter value={totalBuilders || 0} />
-                </p>
-                <p className="text-lg font-medium text-zinc-600 dark:text-zinc-400">Total Builders</p>
-              </div>
-              <div className="text-center">
-                <p className="mb-2 text-5xl font-bold text-[#FFBF00] sm:text-6xl">
-                  <AnimatedCounter value={totalSupports || 0} />
-                </p>
-                <p className="text-lg font-medium text-zinc-600 dark:text-zinc-400">Total Contributions</p>
-              </div>
-              <div className="text-center">
-                <p className="mb-2 text-5xl font-bold text-[#FFBF00] sm:text-6xl">
-                  ${totalUsdRaised.toFixed(2)}
-                </p>
-                <p className="text-lg font-medium text-zinc-600 dark:text-zinc-400">
-                  Total Raised (USD)
-          </p>
-        </div>
-              <div className="text-center">
-                <p className="mb-2 text-5xl font-bold text-[#FFBF00] sm:text-6xl">
-                  <AnimatedCounter value={activeProjects || 0} />
-                </p>
-                <p className="text-lg font-medium text-zinc-600 dark:text-zinc-400">Active Projects</p>
-              </div>
+            <div className={UI_TOKENS.grid.fourColumn}>
+              <StatCard 
+                label="Total Builders"
+                value={<AnimatedCounter value={totalBuilders || 0} />}
+                icon={Users}
+              />
+              <StatCard 
+                label="Total Contributions"
+                value={<AnimatedCounter value={totalSupports || 0} />}
+                icon={TrendingUp}
+              />
+              <StatCard 
+                label="Total Raised (USD)"
+                value={`$${totalUsdRaised.toFixed(2)}`}
+                icon={DollarSign}
+              />
+              <StatCard 
+                label="Active Projects"
+                value={totalProjects || 0}
+                icon={Target}
+              />
             </div>
           </div>
         </section>

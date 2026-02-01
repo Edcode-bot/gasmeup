@@ -5,9 +5,15 @@ import { usePrivy } from '@privy-io/react-auth';
 import { LandingNavbar } from '@/components/landing-navbar';
 import { ConnectWallet } from '@/components/connect-wallet';
 import { BuilderCard } from '@/components/builder-card';
+import { PageShell } from '@/components/layout/page-shell';
+import { SectionCard } from '@/components/layout/section-card';
+import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { UI_TOKENS } from '@/lib/ui/tokens';
 import { supabaseClient } from '@/lib/supabase-client';
 import { getBuilderChainStats } from '@/lib/chain-stats';
 import type { Profile } from '@/lib/supabase';
+import { Search, Users, Shield } from 'lucide-react';
 
 interface BuilderWithTotals extends Profile {
   base_total?: number;
@@ -99,66 +105,96 @@ export default function ExplorePage() {
     <div className="flex min-h-screen flex-col">
       <LandingNavbar />
 
-      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-12">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Explore Builders</h1>
-                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 sm:text-base">
-                  {ready && authenticated
-                    ? 'Discover and support builders in the community'
-                    : 'Connect your wallet to start supporting builders'}
-                </p>
+      <main className="flex-1">
+        <PageShell 
+          title="Explore Builders"
+          subtitle={ready && authenticated
+            ? 'Discover and support builders in the community'
+            : 'Connect your wallet to start supporting builders'
+          }
+          actions={
+            authenticated && (
+              <ConnectWallet />
+            )
+          }
+        >
+          <div className={UI_TOKENS.section.spacing}>
+            {/* Filters Section */}
+            <SectionCard title="Filters">
+              <div className={UI_TOKENS.form.group}>
+                <div>
+                  <label className={UI_TOKENS.form.label}>
+                    <Search className="inline h-4 w-4 mr-2" />
+                    Search builders
+                  </label>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by username, bio, or address..."
+                    className={UI_TOKENS.form.input}
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="verified-only"
+                    checked={verifiedOnly}
+                    onChange={(e) => setVerifiedOnly(e.target.checked)}
+                    className="rounded border-zinc-300 text-[#FFBF00] focus:ring-[#FFBF00] dark:border-zinc-700 dark:bg-zinc-900"
+                  />
+                  <label htmlFor="verified-only" className="text-sm font-medium text-foreground">
+                    <Shield className="inline h-4 w-4 mr-1" />
+                    Verified builders only
+                  </label>
+                </div>
               </div>
-            </div>
-          </div>
+            </SectionCard>
 
-          {/* Search and Filters */}
-          <div className="mb-6 sm:mb-8 space-y-4">
-            <input
-              type="text"
-              placeholder="Search by username or bio..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-foreground placeholder:text-zinc-400 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder:text-zinc-500"
-            />
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={verifiedOnly}
-                  onChange={(e) => setVerifiedOnly(e.target.checked)}
-                  className="h-4 w-4 rounded border-zinc-300 text-[#FFBF00] focus:ring-[#FFBF00] dark:border-zinc-700"
-                />
-                <span className="text-sm font-medium text-foreground flex items-center gap-1">
-                  <span className="text-[#FFBF00]">✓</span> Verified Builders Only
-                </span>
-              </label>
-            </div>
+            {/* Results Section */}
+            <SectionCard 
+              title={`Results (${filteredBuilders.length})`}
+              description={loading ? "Loading builders..." : undefined}
+            >
+              {loading ? (
+                <LoadingSkeleton type="card" count={6} />
+              ) : filteredBuilders.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">No builders found</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 mb-6 max-w-md mx-auto">
+                    {searchQuery || verifiedOnly 
+                      ? "Try adjusting your search or filters"
+                      : "No builders available at the moment"
+                    }
+                  </p>
+                  {searchQuery || verifiedOnly ? (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setVerifiedOnly(false);
+                      }}
+                      className="rounded-lg bg-[#FFBF00] px-4 py-2 text-sm font-medium text-black hover:opacity-90 transition-opacity"
+                    >
+                      Clear filters
+                    </button>
+                  ) : null}
+                </div>
+              ) : (
+                <div className={UI_TOKENS.grid.threeColumn}>
+                  {filteredBuilders.map((builder) => (
+                    <BuilderCard
+                      key={builder.id}
+                      builder={builder}
+                    />
+                  ))}
+                </div>
+              )}
+            </SectionCard>
           </div>
-
-          {/* Builders List */}
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-zinc-600 dark:text-zinc-400">Loading builders...</p>
-            </div>
-          ) : filteredBuilders.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-zinc-600 dark:text-zinc-400">
-                {searchQuery ? 'No builders found matching your search.' : 'No builders yet.'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredBuilders.map((builder) => (
-                <BuilderCard key={builder.id} builder={builder} showStats={true} />
-              ))}
-            </div>
-          )}
-        </div>
+        </PageShell>
       </main>
     </div>
   );
 }
-

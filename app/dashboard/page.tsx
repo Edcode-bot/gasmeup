@@ -45,6 +45,11 @@ export default async function Dashboard() {
     .from('profiles')
     .select('*', { count: 'exact', head: true });
 
+  // Get total projects count
+  const { count: activeProjects } = await supabase
+    .from('projects')
+    .select('*', { count: 'exact', head: true });
+
   // Get global chain statistics
   const chainStats = await getGlobalChainStats();
 
@@ -85,7 +90,7 @@ export default async function Dashboard() {
                   <div>
                     <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Total Raised</p>
                     <p className="text-2xl font-bold text-foreground">
-                      ${chainStats?.totalRaised.toFixed(2) || '0.00'}
+                      ${chainStats?.total.toFixed(2) || '0.00'}
                     </p>
                   </div>
                   <div className="rounded-full bg-[#FFBF00]/10 p-3">

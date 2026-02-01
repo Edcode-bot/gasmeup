@@ -6,7 +6,7 @@ import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { DashboardNavbar } from '@/components/dashboard-navbar';
 import Link from 'next/link';
 import { createWalletClient, custom, parseEther, formatEther } from 'viem';
-import { base, celo } from 'viem/chains';
+import { base, celo, type Chain } from 'viem/chains';
 import type { Address } from 'viem';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Avatar } from '@/components/avatar';
@@ -17,6 +17,7 @@ import { getChainConfig, calculatePlatformFee, calculateAmountAfterFee, getExplo
 import { notifyProjectFunding } from '@/lib/notifications';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Navbar } from '@/components/navbar';
 
 const AMOUNT_PRESETS = [5, 10, 25, 50];
 const SUPPORTED_CHAINS = [
@@ -498,7 +499,7 @@ export default function ProjectFundPage() {
                 )}
               </CardContent>
             </Card>
-          </div>
+          )}</div>
       </main>
     </div>
   );

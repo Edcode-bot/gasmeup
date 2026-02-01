@@ -3,33 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { Navbar } from '@/components/navbar';
-import { Avatar } from '@/components/avatar';
-import { SocialLinks } from '@/components/social-links';
+import { DashboardNavbar } from '@/components/dashboard-navbar';
 import Link from 'next/link';
-import { formatAddress } from '@/lib/utils';
-import { supabaseClient } from '@/lib/supabase-client';
-import type { Project, Profile } from '@/lib/supabase';
-import { notifyProjectFunding } from '@/lib/notifications';
-import {
-  parseEther,
-  formatEther,
-  type Address,
-  createWalletClient,
-  custom,
-  type Chain,
-} from 'viem';
-import {
-  getChainConfig,
-  calculatePlatformFee,
-  calculateAmountAfterFee,
-  getExplorerUrl,
-  estimateGas,
-  getGasPrice,
-  type SupportedChainId,
-} from '@/lib/blockchain';
+import { createWalletClient, custom, parseEther, formatEther } from 'viem';
 import { base, celo } from 'viem/chains';
+import type { Address } from 'viem';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Avatar } from '@/components/avatar';
+import { supabaseClient } from '@/lib/supabase-client';
+import { formatAddress } from '@/lib/user-utils';
+import type { Project, Profile } from '@/lib/supabase';
+import { getChainConfig, calculatePlatformFee, calculateAmountAfterFee, getExplorerUrl, estimateGas, getGasPrice, type SupportedChainId } from '@/lib/blockchain';
+import { notifyProjectFunding } from '@/lib/notifications';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const AMOUNT_PRESETS = [5, 10, 25, 50];
 const SUPPORTED_CHAINS = [
@@ -284,7 +271,7 @@ export default function ProjectFundPage() {
       <Navbar />
 
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-12">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-4xl">
           <Link
             href={`/projects/${projectId}`}
             className="mb-6 inline-flex items-center gap-2 text-sm text-zinc-600 hover:text-[#FFBF00] dark:text-zinc-400"
@@ -293,201 +280,225 @@ export default function ProjectFundPage() {
             Back to Project
           </Link>
 
-          {/* Project Info */}
-          <div className="mb-6 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:mb-8 sm:p-6">
-            <div className="mb-4">
-              <div className="relative h-32 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800 sm:h-48">
-                <img
-                  src={project.image_url}
-                  alt={project.title}
-                  className="h-full w-full object-cover"
-                />
-              </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Project Info */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="mb-4">
+                    <div className="relative h-48 w-full overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                      <img
+                        src={project.image_url}
+                        alt={project.title}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <h1 className="mb-2 text-2xl font-bold text-foreground sm:text-3xl">
+                    Support {project.title}
+                  </h1>
+                  <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                    {project.description}
+                  </p>
+                  {project.what_building && (
+                    <div className="mb-4 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                      <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        🚀 {project.what_building}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                        Your support helps this project move forward
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      src={project.builder?.avatar_url}
+                      alt={project.builder?.username || 'Builder'}
+                      fallback={project.builder?.username?.charAt(0).toUpperCase() || '?'}
+                      size="sm"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {project.builder?.username || formatAddress(project.builder_address)}
+                      </p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                        {formatAddress(project.builder_address)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Funding Form */}
+              <Card>
+                <CardHeader title="Enter Amount" />
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Amount ({getChainConfig(selectedChainId).currency})
+                      </label>
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-2">Quick amounts</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {AMOUNT_PRESETS.map((preset) => (
+                          <button
+                            key={preset}
+                            onClick={() => handlePresetClick(preset)}
+                            className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                              selectedPreset === preset
+                                ? 'border-[#FFBF00] bg-[#FFBF00] text-black'
+                                : 'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
+                            }`}
+                          >
+                            {preset}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Network
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {SUPPORTED_CHAINS.map((chain) => (
+                          <button
+                            key={chain.id}
+                            onClick={() => setSelectedChainId(chain.id)}
+                            className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                              selectedChainId === chain.id
+                                ? 'border-[#FFBF00] bg-[#FFBF00] text-black'
+                                : 'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
+                            }`}
+                          >
+                            {chain.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Message (optional)
+                      </label>
+                      <textarea
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Add a message of support..."
+                        rows={3}
+                        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm placeholder-zinc-500 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                      />
+                    </div>
+
+                    {error && (
+                      <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+                        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleSend}
+                      disabled={txState === 'loading' || !authenticated}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {txState === 'loading' ? 'Processing...' : 'Send Support'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            <h1 className="mb-2 text-2xl font-bold text-foreground sm:text-3xl">
-              Support {project.title}
-            </h1>
-            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
-              {project.description}
-            </p>
-            {project.what_building && (
-              <div className="mb-4 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  🚀 {project.what_building}
-                </p>
-                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                  Your support helps this project move forward
-                </p>
-              </div>
-            )}
-            <div className="flex items-center gap-3">
-              <Avatar
-                src={project.builder?.avatar_url}
-                alt={project.builder?.username || 'Builder'}
-                fallback={project.builder?.username?.charAt(0).toUpperCase() || '?'}
-                size="sm"
-              />
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {project.builder?.username || formatAddress(project.builder_address)}
-                </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                  {formatAddress(project.builder_address)}
-                </p>
-              </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Summary Card */}
+              <Card>
+                <CardHeader title="Funding Summary" />
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">You'll send</span>
+                      <span className="font-medium text-foreground">
+                        {amount || '0.00'} {getChainConfig(selectedChainId).currency}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">Platform fee (3%)</span>
+                      <span className="font-medium text-foreground">
+                        {amount ? (parseFloat(amount) * 0.03).toFixed(4) : '0.00'} {getChainConfig(selectedChainId).currency}
+                      </span>
+                    </div>
+                    <div className="border-t border-zinc-200 pt-3 dark:border-zinc-800">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-foreground">Builder receives</span>
+                        <span className="font-bold text-foreground">
+                          {amount ? (parseFloat(amount) * 0.97).toFixed(4) : '0.00'} {getChainConfig(selectedChainId).currency}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Gas Info */}
+              {estimatedGas && gasPrice && (
+                <Card>
+                  <CardHeader title="Gas Estimate" />
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-zinc-600 dark:text-zinc-400">Gas limit</span>
+                        <span className="font-medium text-foreground">
+                          {estimatedGas.toString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-zinc-600 dark:text-zinc-400">Gas price</span>
+                        <span className="font-medium text-foreground">
+                          {gasPrice.toString()} gwei
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
 
-          {txState === 'success' ? (
-            <div className="rounded-lg border border-green-300 bg-green-50 p-6 text-center dark:border-green-700 dark:bg-green-900/20">
-              <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-green-600 dark:text-green-400" />
-              <h2 className="mb-2 text-2xl font-bold text-green-900 dark:text-green-100">
-                You funded {project.title}!
-              </h2>
-              <p className="mb-4 text-green-800 dark:text-green-200">
-                Your contribution has been sent successfully.
-              </p>
-              {txHash && (
-                <a
-                  href={getExplorerUrl(selectedChainId, txHash)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-green-700 underline hover:text-green-900 dark:text-green-300"
-                >
-                  View on {getChainConfig(selectedChainId).name} Explorer
-                </a>
-              )}
-              <p className="mt-4 text-sm text-green-700 dark:text-green-300">
-                Redirecting to project page...
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Amount Input */}
-              <div className="mb-6 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
-                <label className="mb-4 block text-sm font-medium text-foreground">
-                  Amount ({SUPPORTED_CHAINS.find((c) => c.id === selectedChainId)?.currency})
-                </label>
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => {
-                    setAmount(e.target.value);
-                    setSelectedPreset(null);
-                  }}
-                  placeholder="0.00"
-                  min="0"
-                  step="0.0001"
-                  className="mb-4 w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-2xl font-semibold text-foreground placeholder-zinc-400 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-500"
-                />
-                <div className="flex flex-wrap gap-2">
-                  {AMOUNT_PRESETS.map((preset) => (
-                    <button
-                      key={preset}
-                      onClick={() => handlePresetClick(preset)}
-                      className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                        selectedPreset === preset
-                          ? 'bg-[#FFBF00] text-black'
-                          : 'bg-zinc-100 text-foreground hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700'
-                      }`}
-                    >
-                      ${preset}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Message */}
-              <div className="mb-6 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
-                <label className="mb-2 block text-sm font-medium text-foreground">
-                  Message (optional)
-                </label>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Leave a message for the builder about this project..."
-                  rows={4}
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-2 text-foreground placeholder-zinc-400 focus:border-[#FFBF00] focus:outline-none focus:ring-2 focus:ring-[#FFBF00]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-500"
-                />
-              </div>
-
-              {/* Chain Selector */}
-              <div className="mb-6 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
-                <label className="mb-2 block text-sm font-medium text-foreground">
-                  Select Chain
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {SUPPORTED_CHAINS.map((chain) => (
-                    <button
-                      key={chain.id}
-                      onClick={() => setSelectedChainId(chain.id as SupportedChainId)}
-                      className={`rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
-                        selectedChainId === chain.id
-                          ? 'border-[#FFBF00] bg-[#FFBF00]/10 text-[#FFBF00]'
-                          : 'border-zinc-300 bg-white text-foreground hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800'
-                      }`}
-                    >
-                      {chain.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Transaction Summary */}
-              {amount && parseFloat(amount) > 0 && (
-                <div className="mb-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-6">
-                  <h3 className="mb-4 text-sm font-semibold text-foreground">Transaction Summary</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-zinc-600 dark:text-zinc-400">Amount</span>
-                      <span className="font-medium text-foreground">
-                        {formatEther(amountWei)} {SUPPORTED_CHAINS.find((c) => c.id === selectedChainId)?.currency}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-zinc-600 dark:text-zinc-400">Platform Fee (3%)</span>
-                      <span className="font-medium text-foreground">
-                        {formatEther(platformFee)} {SUPPORTED_CHAINS.find((c) => c.id === selectedChainId)?.currency}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-t border-zinc-200 pt-2 dark:border-zinc-700">
-                      <span className="font-semibold text-foreground">Builder Receives</span>
-                      <span className="font-semibold text-[#FFBF00]">
-                        {formatEther(amountAfterFee)} {SUPPORTED_CHAINS.find((c) => c.id === selectedChainId)?.currency}
-                      </span>
-                    </div>
-                    {estimatedFee && (
-                      <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                        <span>Estimated Gas Fee</span>
-                        <span>{formatEther(estimatedFee)} {SUPPORTED_CHAINS.find((c) => c.id === selectedChainId)?.currency}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Error */}
-              {error && (
-                <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-700 dark:bg-red-900/20 dark:text-red-400">
-                  {error}
-                </div>
-              )}
-
-              {/* Send Button */}
-              <button
-                onClick={handleSend}
-                disabled={!authenticated || !amount || parseFloat(amount) <= 0 || txState === 'loading'}
-                className="w-full min-h-[44px] rounded-lg bg-[#FFBF00] px-6 py-3 text-base font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {!authenticated
-                  ? 'Connect Wallet to Continue'
-                  : txState === 'loading'
-                    ? 'Processing...'
-                    : 'Send Support'}
-              </button>
-            </>
-          )}
-        </div>
+          {txState === 'success' && (
+            <Card className="border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/20">
+              <CardContent className="p-6 text-center">
+                <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-green-600 dark:text-green-400" />
+                <h2 className="mb-2 text-2xl font-bold text-green-900 dark:text-green-100">
+                  You funded {project.title}!
+                </h2>
+                <p className="mb-4 text-green-800 dark:text-green-200">
+                  Your contribution has been sent successfully.
+                </p>
+                {txHash && (
+                  <a
+                    href={getExplorerUrl(selectedChainId, txHash)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-green-700 underline hover:text-green-900 dark:text-green-300"
+                  >
+                    View on {getChainConfig(selectedChainId).name} Explorer
+                  </a>
+                )}
+              </CardContent>
+            </Card>
+          </div>
       </main>
     </div>
   );

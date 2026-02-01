@@ -7,6 +7,8 @@ import { supabaseClient } from '@/lib/supabase-client';
 import { formatAddress } from '@/lib/user-utils';
 import Link from 'next/link';
 import type { Profile } from '@/lib/supabase';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export function UserProfileCard() {
   const { authenticated, user } = usePrivy();
@@ -51,93 +53,92 @@ export function UserProfileCard() {
 
   if (!authenticated) {
     return (
-      <div className="rounded-lg border border-zinc-200 p-6 dark:border-zinc-800">
-        <h2 className="mb-2 text-xl font-semibold text-foreground">My Profile</h2>
-        <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-          Connect your wallet to create or update your profile.
-        </p>
-        <Link
-          href="/dashboard/profile"
-          className="inline-block rounded-full bg-[#FFBF00] px-6 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
-        >
-          Create Profile
-        </Link>
-      </div>
+      <Card>
+        <CardHeader 
+          title="My Profile"
+          subtitle="Connect your wallet to create or update your profile."
+          action={
+            <Link href="/dashboard/profile">
+              <Button size="sm">Create Profile</Button>
+            </Link>
+          }
+        />
+      </Card>
     );
   }
 
   if (loading) {
     return (
-      <div className="rounded-lg border border-zinc-200 p-6 dark:border-zinc-800">
-        <h2 className="mb-2 text-xl font-semibold text-foreground">My Profile</h2>
-        <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
-      </div>
+      <Card>
+        <CardHeader title="My Profile">
+          <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
+        </CardHeader>
+      </Card>
     );
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:p-6">
-      <h2 className="mb-4 text-lg font-semibold text-foreground sm:text-xl">My Profile</h2>
-      {profile ? (
-        <>
-          <div className="mb-4 flex items-center gap-4">
-            <Avatar
-              src={profile.avatar_url}
-              alt={profile.username || 'Avatar'}
-              fallback={profile.username?.charAt(0).toUpperCase() || '?'}
-              size="md"
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">
-                Welcome @{profile.username || 'Anonymous'}!
-              </h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                {formatAddress(profile.wallet_address)}
-              </p>
+    <Card>
+      <CardHeader 
+        title="My Profile"
+        action={
+          profile && (
+            <Link href={`/builder/${profile.wallet_address}`}>
+              <Button variant="secondary" size="sm">View Profile</Button>
+            </Link>
+          )
+        }
+      />
+      <CardContent>
+        {profile ? (
+          <>
+            <div className="mb-4 flex items-center gap-4">
+              <Avatar
+                src={profile.avatar_url}
+                alt={profile.username || 'Avatar'}
+                fallback={profile.username?.charAt(0).toUpperCase() || '?'}
+                size="md"
+              />
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">
+                  Welcome @{profile.username || 'Anonymous'}!
+                </h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                  {formatAddress(profile.wallet_address)}
+                </p>
+              </div>
             </div>
-          </div>
-          {profile.bio && (
-            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
-              {profile.bio}
+            {profile.bio && (
+              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-3">
+                {profile.bio}
+              </p>
+            )}
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link href={`/builder/${profile.wallet_address}`}>
+                <Button variant="secondary" className="flex-1">View Profile</Button>
+              </Link>
+              <Link href="/dashboard/profile">
+                <Button className="flex-1">Edit Profile</Button>
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              You can explore projects and support builders right away. Create your profile later to receive funding.
             </p>
-          )}
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href={`/builder/${profile.wallet_address}`}
-              className="min-h-[44px] flex-1 rounded-full border border-zinc-300 px-4 py-2.5 text-center text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            >
-              View Profile
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              className="min-h-[44px] flex-1 rounded-full bg-[#FFBF00] px-4 py-2.5 text-center text-sm font-medium text-black transition-opacity hover:opacity-90"
-            >
-              Edit Profile
-            </Link>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-            You can explore projects and support builders right away. Create your profile later to receive funding.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/projects"
-              className="min-h-[44px] flex-1 rounded-full border border-zinc-300 px-4 py-2.5 text-center text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            >
-              Explore Projects
-            </Link>
-            <Link
-              href="/dashboard/profile"
-              className="min-h-[44px] flex-1 rounded-full bg-[#FFBF00] px-4 py-2.5 text-center text-sm font-medium text-black transition-opacity hover:opacity-90"
-            >
-              Create Profile
-            </Link>
-          </div>
-        </>
-      )}
-    </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link href="/projects">
+                <Button variant="secondary" className="flex-1">Explore Projects</Button>
+              </Link>
+              <Link href="/dashboard/profile">
+                <Button className="flex-1">Create Profile</Button>
+              </Link>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

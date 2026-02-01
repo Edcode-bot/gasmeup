@@ -4,9 +4,11 @@ import { GetStartedButton } from '@/components/get-started-button';
 import { FeaturedBuilders } from '@/components/featured-builders';
 import { FAQAccordion } from '@/components/faq-accordion';
 import { AnimatedCounter } from '@/components/animated-counter';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { Wallet, Search, Send, Shield, Zap, Eye, Link2 } from 'lucide-react';
+import { Wallet, Search, Send, Shield, Zap, Eye, Link2, ArrowRight, Github, Users, DollarSign, Target } from 'lucide-react';
 
 export default async function Home() {
   // Fetch featured builders (top 6 by total raised)
@@ -180,7 +182,7 @@ export default async function Home() {
                   Future
                 </span>
                 .
-          </h1>
+              </h1>
               <p className="mx-auto mb-8 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-400 sm:text-xl">
                 Direct, transparent, gasless support for creators on Web3. Join{' '}
                 <AnimatedCounter value={totalBuilders || 0} /> builders already funded.
@@ -189,11 +191,11 @@ export default async function Home() {
               {/* CTA Buttons */}
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <GetStartedButton />
-                <Link
-                  href="/explore"
-                  className="min-h-[44px] flex items-center justify-center rounded-full border-2 border-zinc-300 bg-white px-8 py-3 text-base font-semibold text-foreground transition-all hover:bg-zinc-50 hover:scale-105 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
-                >
-                  Explore Builders
+                <Link href="/explore">
+                  <Button variant="secondary" size="lg">
+                    Explore Builders
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </Link>
               </div>
             </div>

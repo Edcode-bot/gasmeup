@@ -77,7 +77,7 @@ export default async function BuilderPage({ params }: BuilderPageProps) {
       <Navbar />
       
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-12">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-7xl space-y-8">
           <div className="mb-6 sm:mb-8">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">

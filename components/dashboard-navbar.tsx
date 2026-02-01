@@ -7,7 +7,9 @@ import { usePrivy } from '@privy-io/react-auth';
 import { formatAddress } from '@/lib/utils';
 import { Avatar } from '@/components/avatar';
 import { supabaseClient } from '@/lib/supabase-client';
-import { Bell } from 'lucide-react';
+import { Bell, Home, Users, DollarSign, FileText, Settings, Menu, X } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export function DashboardNavbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,15 +75,18 @@ export function DashboardNavbar() {
   };
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/explore', label: 'Explore Builders' },
-    { href: '/projects', label: 'Projects' },
-    { href: '/leaderboard', label: 'Leaderboard' },
-    { href: '/dashboard/projects', label: 'My Projects' },
-    { href: '/dashboard/posts', label: 'My Posts' },
-    { href: '/dashboard/buttons', label: 'Share & Buttons' },
-    { href: '/dashboard/notifications', label: 'Notifications', badge: unreadCount },
-  ];
+  { href: '/dashboard', label: 'Overview', icon: Home },
+  { href: '/dashboard/projects', label: 'Projects', icon: FileText },
+  { href: '/dashboard/posts', label: 'Posts', icon: FileText },
+  { href: '/dashboard/buttons', label: 'Share', icon: Settings },
+  { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, badge: unreadCount },
+];
+
+const moreItems = [
+  { href: '/explore', label: 'Explore Builders', icon: Users },
+  { href: '/projects', label: 'All Projects', icon: DollarSign },
+  { href: '/leaderboard', label: 'Leaderboard', icon: Users },
+];
 
   const isActive = (href: string) => pathname === href;
 
@@ -90,7 +95,7 @@ export function DashboardNavbar() {
   }
 
   return (
-    <nav className="border-b border-zinc-200 dark:border-zinc-800">
+    <nav className="border-b border-zinc-200 dark:border-zinc-800 bg-white/80 backdrop-blur-sm dark:bg-zinc-900/80">
       <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -98,137 +103,202 @@ export function DashboardNavbar() {
             <span className="text-2xl font-bold text-[#FFBF00]">GasMeUp</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:gap-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`relative flex items-center gap-2 text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? 'text-[#FFBF00]'
-                    : 'text-zinc-600 hover:text-foreground dark:text-zinc-400'
-                }`}
-              >
-                {item.label}
-                {item.badge && item.badge > 0 && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FFBF00] text-xs font-semibold text-black">
-                    {item.badge > 9 ? '9+' : item.badge}
-                  </span>
-                )}
-              </Link>
-            ))}
-
-            {/* User Menu */}
-            <div className="relative ml-4">
-              <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              >
-                <div className="h-8 w-8 rounded-full bg-[#FFBF00] flex items-center justify-center text-xs font-semibold text-black">
-                  {user?.wallet?.address ? formatAddress(user.wallet.address).slice(0, 2).toUpperCase() : 'U'}
-                </div>
-                <span className="hidden lg:inline">{formatAddress(user?.wallet?.address || '')}</span>
-                <svg
-                  className={`h-4 w-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+          {/* Desktop Navigation - Tabs */}
+          <div className="hidden lg:flex lg:items-center lg:gap-1">
+            {/* Main Tabs */}
+            <div className="flex items-center border-b border-zinc-200 dark:border-zinc-700">
+              {navItems.slice(0, 4).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`relative flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+                    isActive(item.href)
+                      ? 'text-[#FFBF00] border-[#FFBF00]'
+                      : 'border-transparent text-zinc-600 hover:text-foreground dark:text-zinc-400'
+                  }`}
                 >
-                  <path d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                  {item.badge && item.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FFBF00] text-xs font-semibold text-black">
+                      {item.badge > 9 ? '9+' : item.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
 
-              {/* User Dropdown */}
+            {/* More Dropdown */}
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2"
+              >
+                More
+                <Menu className={`h-4 w-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+              </Button>
+              
               {userMenuOpen && (
                 <>
                   <div
                     className="fixed inset-0 z-10"
                     onClick={() => setUserMenuOpen(false)}
                   />
-                  <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-zinc-200 bg-white py-2 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
-                    <Link
-                      href="/dashboard/profile"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full px-4 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                    >
-                      Logout
-                    </button>
-                  </div>
+                  <Card className="absolute right-0 top-full mt-2 w-48 z-20">
+                    <CardContent className="p-2">
+                      <div className="space-y-1">
+                        {moreItems.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setUserMenuOpen(false)}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                              isActive(item.href)
+                                ? 'bg-[#FFBF00]/10 text-[#FFBF00]'
+                                : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                            }`}
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* User Menu */}
+          <div className="flex items-center gap-3">
+            {/* Notifications */}
+            {unreadCount > 0 && (
+              <Link href="/dashboard/notifications">
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-4 w-4" />
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FFBF00] text-xs font-semibold text-black">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                </Button>
+              </Link>
+            )}
+
+            {/* User Avatar */}
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2"
+              >
+                <div className="h-8 w-8 rounded-full bg-[#FFBF00] flex items-center justify-center text-xs font-semibold text-black">
+                  {user?.wallet?.address ? formatAddress(user.wallet.address).slice(0, 2).toUpperCase() : 'U'}
+                </div>
+                <span className="hidden lg:inline text-sm text-zinc-700 dark:text-zinc-300">
+                  {formatAddress(user?.wallet?.address || '')}
+                </span>
+              </Button>
+              
+              {userMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setUserMenuOpen(false)}
+                  />
+                  <Card className="absolute right-0 top-full mt-2 w-48 z-20">
+                    <CardContent className="p-2">
+                      <div className="space-y-1">
+                        <Link
+                          href="/dashboard/profile"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        >
+                          <Settings className="h-4 w-4" />
+                          Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 w-full text-left"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </>
               )}
             </div>
           </div>
 
           {/* Mobile Menu Button */}
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setIsOpen(!isOpen)}
-            className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 md:hidden"
-            aria-label="Toggle menu"
+            className="lg:hidden"
           >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {isOpen ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
         </div>
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800 md:hidden">
-            <div className="flex flex-col gap-2">
-              {navItems.map((item) => (
+          <div className="border-t border-zinc-200 bg-white/80 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/80 lg:hidden">
+            <div className="px-4 py-4">
+              <div className="space-y-2">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-[#FFBF00]/10 text-[#FFBF00]'
+                        : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                    {item.badge && item.badge > 0 && (
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FFBF00] text-xs font-semibold text-black">
+                        {item.badge > 9 ? '9+' : item.badge}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+                {moreItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-[#FFBF00]/10 text-[#FFBF00]'
+                        : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                ))}
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  href="/dashboard/profile"
                   onClick={() => setIsOpen(false)}
-                  className={`relative flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-[#FFBF00]/10 text-[#FFBF00]'
-                      : 'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
-                  }`}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
-                  <span>{item.label}</span>
-                  {item.badge && item.badge > 0 && (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FFBF00] text-xs font-semibold text-black">
-                      {item.badge > 9 ? '9+' : item.badge}
-                    </span>
-                  )}
+                  <Settings className="h-4 w-4" />
+                  Profile
                 </Link>
-              ))}
-              <Link
-                href="/dashboard/profile"
-                onClick={() => setIsOpen(false)}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              >
-                Profile
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="rounded-lg px-3 py-2 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              >
-                Logout
-              </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 w-full text-left"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         )}

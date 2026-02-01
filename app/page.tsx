@@ -244,53 +244,91 @@ export default async function Home() {
         </section>
 
         {/* Features */}
-        <section className="bg-zinc-50 py-16 dark:bg-zinc-900 sm:py-24">
+        <section className="bg-zinc-50/50 py-16 dark:bg-zinc-900/50 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-foreground sm:text-4xl">Why GasMeUp?</h2>
+              <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+                The simplest way to support Web3 builders and projects
+              </p>
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#FFBF00]/10">
-                  <Shield className="h-6 w-6 text-[#FFBF00]" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-foreground">Non-Custodial</h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Your funds, your control. We never hold your money—it goes straight to your wallet.
-                </p>
-              </div>
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#FFBF00]/10">
-                  <Link2 className="h-6 w-6 text-[#FFBF00]" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-foreground">Multi-Chain</h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Support on 6+ blockchains. Choose the chain that works best for you.
-                </p>
-              </div>
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#FFBF00]/10">
-                  <Eye className="h-6 w-6 text-[#FFBF00]" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-foreground">Transparent</h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Every transaction on-chain. Full transparency, no hidden fees.
-                </p>
-              </div>
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#FFBF00]/10">
-                  <Zap className="h-6 w-6 text-[#FFBF00]" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-foreground">Zero Fees</h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  97% goes to builders. Only 3% platform fee to keep the lights on.
-                </p>
-              </div>
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFBF00]/20 mx-auto">
+                    <Wallet className="h-6 w-6 text-[#FFBF00]" />
+                  </div>
+                  <h3 className="mb-2 text-xl font-semibold text-foreground">Gasless Support</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    Supporters pay gas, builders receive funds instantly. No complex transactions needed.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 mx-auto dark:bg-blue-900/20">
+                    <Shield className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="mb-2 text-xl font-semibold text-foreground">Non-Custodial</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    We never hold your funds. All transactions go directly to builders' wallets.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mx-auto dark:bg-green-900/20">
+                    <Zap className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="mb-2 text-xl font-semibold text-foreground">Multi-Chain</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    Support builders on Base and Celo. Choose your preferred network.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 mx-auto dark:bg-purple-900/20">
+                    <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="mb-2 text-xl font-semibold text-foreground">Project Funding</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    Fund specific projects and milestones, not just general support.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 mx-auto dark:bg-orange-900/20">
+                    <Eye className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <h3 className="mb-2 text-xl font-semibold text-foreground">Transparent</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    All transactions on-chain. Track exactly where your support goes.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mx-auto dark:bg-red-900/20">
+                    <Users className="h-6 w-6 text-red-600 dark:text-red-400" />
+                  </div>
+                  <h3 className="mb-2 text-xl font-semibold text-foreground">Community Driven</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400">
+                    Built for the Web3 community, by the Web3 community.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
 
-        {/* Stats Section */}
+        {/* Featured Builders */}
         <section className="py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="text-center mb-12">

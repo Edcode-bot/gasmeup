@@ -87,6 +87,24 @@ export default async function Dashboard() {
             </div>
           </div>
           
+          {/* Welcome Banner for New Users */}
+          <div className="mb-6 rounded-lg border border-[#FFBF00]/20 bg-[#FFBF00]/5 p-4 dark:border-[#FFBF00]/30 dark:bg-[#FFBF00]/10">
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <h3 className="mb-1 text-sm font-semibold text-foreground">Welcome to GasMeUp!</h3>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  You can explore projects and support builders right away. Profile details can be added later when you're ready to receive funding.
+                </p>
+              </div>
+              <Link
+                href="/projects"
+                className="min-h-[36px] rounded-full bg-[#FFBF00] px-4 py-1.5 text-xs font-medium text-black transition-opacity hover:opacity-90"
+              >
+                Explore Projects
+              </Link>
+            </div>
+          </div>
+          
           <div className="mb-6 grid gap-4 sm:mb-8 sm:gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               <UserProfileCard />

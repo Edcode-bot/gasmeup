@@ -122,7 +122,7 @@ export function ProfileCompletionIndicator() {
       {incompleteItems.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-            Complete your profile to get more supporters:
+            Complete your profile when you're ready - it's optional for exploring:
           </p>
           {incompleteItems.map((item) => (
             <div key={item.key} className="flex items-center justify-between py-2">

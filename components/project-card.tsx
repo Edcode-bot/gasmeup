@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { formatAddress } from '@/lib/utils';
 import type { Project, Profile } from '@/lib/supabase';
-import { Calendar, Users, Target } from 'lucide-react';
+import { Calendar, Users, Target, Github } from 'lucide-react';
 
 interface ProjectCardProps {
   project: Project & { builder?: Profile | null };
@@ -59,17 +59,33 @@ export function ProjectCard({
             <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               🚀 {project.what_building}
             </p>
+            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+              Funding enables this project to move forward
+            </p>
           </div>
         )}
 
         {showBuilder && project.builder && (
-          <Link
-            href={`/builder/${project.builder_address}`}
-            onClick={(e) => e.stopPropagation()}
-            className="mb-3 text-sm text-zinc-500 hover:text-[#FFBF00] dark:text-zinc-400"
-          >
-            by {project.builder.username || formatAddress(project.builder_address)}
-          </Link>
+          <div className="mb-3 flex items-center justify-between">
+            <Link
+              href={`/builder/${project.builder_address}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-sm text-zinc-500 hover:text-[#FFBF00] dark:text-zinc-400"
+            >
+              by {project.builder.username || formatAddress(project.builder_address)}
+            </Link>
+            {project.builder.github_url && (
+              <Link
+                href={project.builder.github_url}
+                onClick={(e) => e.stopPropagation()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+              >
+                <Github className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
         )}
 
         <p

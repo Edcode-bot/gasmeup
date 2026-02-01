@@ -126,6 +126,11 @@ export default async function Home() {
         'GasMeUp charges a transparent 3% platform fee on all contributions. The remaining 97% goes directly to the builder. Additionally, supporters pay network gas fees required by the blockchain, which vary by chain and network conditions.',
     },
     {
+      question: 'What about incentives?',
+      answer:
+        'GasMeUp is early. Today, support is about transparency, progress, and recognition. Incentives may be added later as the platform grows. We focus on helping builders get funded and supporters make informed decisions.',
+    },
+    {
       question: 'Is my wallet secure?',
       answer:
         'Yes! GasMeUp is non-custodial, meaning we never hold your funds. All transactions are executed directly on the blockchain to your wallet address. You maintain full control of your private keys and funds at all times.',
@@ -322,6 +327,47 @@ export default async function Home() {
 
         {/* Featured Builders */}
         <FeaturedBuilders builders={featuredBuilders} />
+
+        {/* Roadmap */}
+        <section className="py-16 sm:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-foreground sm:text-4xl">Roadmap</h2>
+              <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+                How GasMeUp evolves to better support builders and projects
+              </p>
+            </div>
+            <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-3">
+              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFBF00]/20">
+                  <span className="text-lg font-bold text-[#FFBF00]">1</span>
+                </div>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Direct Funding</h3>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  Fund builders and projects directly. Simple, transparent support for creators building on Base and Celo.
+                </p>
+              </div>
+              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFBF00]/20">
+                  <span className="text-lg font-bold text-[#FFBF00]">2</span>
+                </div>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Milestone-Based Funding</h3>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  Funding tied to specific milestones and requirements. Clear goals and transparent progress tracking.
+                </p>
+              </div>
+              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#FFBF00]/20">
+                  <span className="text-lg font-bold text-[#FFBF00]">3</span>
+                </div>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">Discovery & Reputation</h3>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  Enhanced discovery, reputation signals, and prioritization. Help supporters find the most promising projects.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Testimonials */}
         <section className="py-16 sm:py-24">

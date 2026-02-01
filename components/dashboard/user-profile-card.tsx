@@ -119,14 +119,22 @@ export function UserProfileCard() {
       ) : (
         <>
           <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-            Create your builder profile to start receiving support from the community.
+            You can explore projects and support builders right away. Create your profile later to receive funding.
           </p>
-          <Link
-            href="/dashboard/profile"
-            className="inline-block rounded-full bg-[#FFBF00] px-6 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90"
-          >
-            Create Profile
-          </Link>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/projects"
+              className="min-h-[44px] flex-1 rounded-full border border-zinc-300 px-4 py-2.5 text-center text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+              Explore Projects
+            </Link>
+            <Link
+              href="/dashboard/profile"
+              className="min-h-[44px] flex-1 rounded-full bg-[#FFBF00] px-4 py-2.5 text-center text-sm font-medium text-black transition-opacity hover:opacity-90"
+            >
+              Create Profile
+            </Link>
+          </div>
         </>
       )}
     </div>
